@@ -1,8 +1,48 @@
+# Dependencies and package-manager caches
 node_modules/
+.npm/
+.pnpm-store/
+
+# Build output and Vite cache
 dist/
-.idea/
+dist-ssr/
+.vite/
+*.local
+*.tsbuildinfo
+
+# Logs and diagnostics
+logs/
+*.log
+report.*.json
+
+# Test output and tool caches
+coverage/
+.nyc_output/
+.eslintcache
+.stylelintcache
+.cache/
+playwright-report/
+test-results/
+
+# Local environment (keep shareable examples)
 .env
 .env.*
 !.env.example
-*.log
+!.env.*.example
+
+# Editors and operating systems
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local npm archives
 *.tgz
