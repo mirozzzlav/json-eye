@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.0
 
 - Added controlled section expansion through `JsonEye` props `expanded` and `onExpandedChange(key, expanded)`.
 - Removed `expanded` from section metadata; use the top-level expansion map instead.
