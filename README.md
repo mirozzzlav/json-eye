@@ -147,7 +147,11 @@ with all parameters supplied directly in the text:
 ```
 
 - `photos`: an array of photo objects. Each needs a string `src` and optionally
-  a string `alt`. `alt` defaults to empty and is translated through `t`. One image uses a one-item array; `%photos[]%` displays nothing.
+  a string `alt` and a boolean `square`. `alt` defaults to empty and is translated through `t`.
+  `square` defaults to `true`: images are square and cropped with `object-fit: cover`.
+  Set `square: false` to preserve an image's native aspect ratio, for example
+  `%photos[{src:/landscape.jpg,alt:Landscape,square:false}]%`.
+  One image uses a one-item array; `%photos[]%` displays nothing.
   Use the plural `photos` name, including for a single image.
 - `link`: required `url`; optional `text`. Omitted `text` displays
   the URL. Supplied `text` is translated through `t`.
@@ -170,7 +174,7 @@ const data = {
 };
 ```
 
-Only `src` and `alt` are accepted in each photo object. Styling belongs to the
+Only `src`, `alt` and `square` are accepted in each photo object. Other styling belongs to the
 renderer, not placeholder data. Photo lists
 are parsed as data, never executed as JavaScript. An invalid item leaves the
 whole placeholder literal, rather than rendering a partial collection.
@@ -225,8 +229,9 @@ Built-in renderers:
 - `section`: translated `title` (default `"Section"`), optional `icon`, and children.
   Used internally by the `sections` map as well as explicit nodes.
 - `photos`: images from a `props.items` array, with translated `alt` (default empty).
+  Each item supports `square` (default `true`); `false` preserves its native aspect ratio.
   A renderer-level `className` applies to all images; it is not an item field.
-  No DOM wrapper is added.
+  An inline flex wrapper adds a 6px gap between images and wraps them onto new rows when needed.
 - `link`: `url` with rendered children, or the URL itself when value is omitted.
   Email gets `mailto:`; explicit `mailto:` URLs (including query parameters) are
   preserved. Other addresses without HTTP(S) get `https://`.
@@ -263,8 +268,12 @@ Section, link and photos components forward a renderer-level `className`.
 
 `DocumentSection` provides a heading with a unique accessible ID. Root and nested
 containers start expanded; empty containers have no toggle. Content remains
-mounted and visible when printing. Page dimensions, global styles, photo sizes and decorations are controlled by
-the consuming application.
+mounted and visible when printing. Both photo variants use `width: 120px`, `max-width: 100%` and
+`height: auto` to fit their container. By default, `aspect-ratio: 1 / 1` and
+`object-fit: cover` crop them to squares; item-level `square: false` preserves
+the native aspect ratio.
+Page dimensions, global styles, custom photo sizes and decorations are controlled
+by the consuming application.
 
 Standalone `JsonObject` supports `value`, `renderers`, `t`,
 `collapsible`, `initiallyExpanded` and `label`. `collapsible={false}` disables

@@ -18,9 +18,10 @@ const { default: CollapsibleContent } = await server.ssrLoadModule(
 );
 const render = (data, props = {}) =>
   renderToStaticMarkup(createElement(JsonEye, { data, ...props }));
+const withoutStyles = (html) =>
+  html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/g, "");
 const text = (html) =>
-  html
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/g, "")
+  withoutStyles(html)
     .replace(/<[^>]*>/g, "")
     .replaceAll("&quot;", '"')
     .replaceAll("&amp;", "&")
@@ -406,7 +407,7 @@ test("built-in photos and link render without registration at the root and neste
     const html = render(data, { t });
     assert.match(
       html,
-      /<img[^>]*src="\/portrait.jpg"[^>]*alt="Portrét"[^>]*class="portrait"/,
+      /<img[^>]*src="\/portrait.jpg"[^>]*alt="Portrét"[^>]*class="portrait(?: [^"]*)?"/,
     );
     assert.doesNotMatch(html, /170px|230px/);
   }
@@ -418,7 +419,10 @@ test("built-in photos and link render without registration at the root and neste
     },
     { t },
   );
-  assert.match(html, /<a[^>]*href="https:\/\/example.com"[^>]*><img/);
+  assert.match(
+    withoutStyles(html),
+    /<a[^>]*href="https:\/\/example.com"[^>]*><span[^>]*><img/,
+  );
   assert.match(html, /target="_blank" rel="noopener noreferrer"/);
 });
 
@@ -449,7 +453,10 @@ test("built-ins support local overrides, explicit render calls and standalone Js
     return createElement("aside", null, render(image));
   }
   const frame = { renderer: "frame", props: { image: photo } };
-  assert.match(render(frame, { renderers: { frame: Frame } }), /<aside><img/);
+  assert.match(
+    withoutStyles(render(frame, { renderers: { frame: Frame } })),
+    /<aside><span[^>]*><img/,
+  );
   assert.equal(
     text(
       render(frame, {
@@ -479,7 +486,7 @@ test("built-ins support local overrides, explicit render calls and standalone Js
       value: { renderer: "link", props: { url: "example.com" }, value: photo },
     }),
   );
-  assert.match(html, /<a[^>]*><img/);
+  assert.match(withoutStyles(html), /<a[^>]*><span[^>]*><img/);
 });
 
 test("built-in sections translate titles and render nested content and application icons", () => {
@@ -649,6 +656,33 @@ test("photos accepts multiple descriptors, quoted strings and an empty collectio
   assert.equal(text(render("%photos[]%")), "");
 });
 
+test("photos default to square cover and allow each item to preserve its native ratio", () => {
+  for (const square of [undefined, true, false]) {
+    const item = { src: "/landscape.jpg", alt: "Landscape" };
+    if (square !== undefined) item.square = square;
+    for (const data of [
+      `%photos[${JSON.stringify(item)}]%`,
+      { renderer: "photos", props: { items: [item] } },
+    ]) {
+      const html = render(data);
+      assert.match(html, /<img[^>]*src="\/landscape.jpg"[^>]*alt="Landscape"/);
+      assert.match(html, /max-width:100%;height:auto/);
+      assert.doesNotMatch(withoutStyles(html), /\bsquare=/);
+      if (square === false) {
+        assert.doesNotMatch(html, /aspect-ratio:|object-fit:cover/);
+      } else {
+        assert.match(html, /aspect-ratio:1\s*\/\s*1;object-fit:cover/);
+      }
+    }
+  }
+  const html = render(
+    "%photos[{src:/square.jpg,square:true},{src:/native.jpg,square:false}]%",
+  );
+  const images = [...html.matchAll(/<img[^>]*class="([^"]*)"/g)];
+  assert.equal(images.length, 2);
+  assert.notEqual(images[0][1], images[1][1]);
+});
+
 test("unknown or malformed placeholders stay literal and text never becomes HTML", () => {
   for (const value of [
     "%unknown;src=/photo.jpg%",
@@ -670,6 +704,11 @@ test("unknown or malformed placeholders stay literal and text never becomes HTML
     "%link;url=example.com;className=custom%",
     "%photos[{src:null}]%",
     "%photos[{src:x,alt:123}]%",
+    '%photos[{src:x,square:"false"}]%',
+    "%photos[{src:x,square:0}]%",
+    "%photos[{src:x,square:null}]%",
+    "%photos[{src:x,square:true,square:false}]%",
+    "%photos[{src:x},{src:y,square:invalid}]%",
     "%photos[{src:{nested:x}}]%",
     "%photos[{src:x},null]%",
     '%photos[{"src":"unterminated}]%',
@@ -707,7 +746,10 @@ test("external placeholder renderers own their styles while JSON stays presentat
     renderers: { photos: StyledPhotos, link: StyledLink },
     t: (token) => (token === "portrait" ? "Portrét" : token),
   });
-  assert.equal((html.match(/class="custom-photos"/g) ?? []).length, 2);
+  assert.equal(
+    (html.match(/class="custom-photos(?: [^"]*)?"/g) ?? []).length,
+    2,
+  );
   assert.match(html, /alt="Portrét"/);
   assert.match(html, /class="custom-link">Website<\/a>/);
   assert.equal(JSON.stringify(data), original);

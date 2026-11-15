@@ -26,6 +26,7 @@ const tokens = {
     printHeading: { fontSize: "22px", lineHeight: "28px" },
   },
   fontWeight: { regular: 400, bold: 700, heading: 800 },
+  size: { photoWidth: "120px" },
   radius: { small: "3px", medium: "8px" },
   borderWidth: "2px",
   arrayGap: "var(--json-array-gap, 6px)",
@@ -40,6 +41,24 @@ export const style = {
     color: tokens.color.text,
     fontWeight: tokens.fontWeight.bold,
     textDecoration: "none",
+  },
+  photoList: {
+    display: "inline-flex",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
+    gap: tokens.spacing.compact,
+    minWidth: 0,
+    maxWidth: "100%",
+    verticalAlign: "top",
+  },
+  photo: {
+    width: tokens.size.photoWidth,
+    maxWidth: "100%",
+    height: "auto",
+  },
+  photoSquare: {
+    aspectRatio: "1 / 1",
+    objectFit: "cover",
   },
   sectionIcon: {
     boxSizing: "border-box",
@@ -134,6 +153,10 @@ export const style = {
     display: "block",
     marginLeft: tokens.spacing.large,
     marginBottom: tokens.spacing.propertyGap,
+    "&:has(> [data-json-photos])": {
+      display: "flex",
+      alignItems: "flex-start",
+    },
     "@media print": {
       marginBottom: "var(--json-property-gap, 3px)",
     },
@@ -167,6 +190,7 @@ export const style = {
   jsonKey: {
     color: tokens.color.accent,
     fontWeight: tokens.fontWeight.bold,
+    flexShrink: 0,
   },
   strongHl: {
     display: "flex",

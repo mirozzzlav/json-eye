@@ -50,7 +50,10 @@ export function parsePhotoList(source) {
       whitespace();
       while (source[index] !== "}") {
         const name = key();
-        if (!["src", "alt"].includes(name) || Object.hasOwn(photo, name))
+        if (
+          !["src", "alt", "square"].includes(name) ||
+          Object.hasOwn(photo, name)
+        )
           return null;
         take(":");
         photo[name] = value();
@@ -62,6 +65,8 @@ export function parsePhotoList(source) {
       take("}");
       if (typeof photo.src !== "string" || !photo.src.trim()) return null;
       if (Object.hasOwn(photo, "alt") && typeof photo.alt !== "string")
+        return null;
+      if (Object.hasOwn(photo, "square") && typeof photo.square !== "boolean")
         return null;
       items.push(photo);
       whitespace();
