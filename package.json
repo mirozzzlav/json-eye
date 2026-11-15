@@ -17,10 +17,12 @@
   "scripts": {
     "build": "vite build",
     "test": "node tests/render.test.mjs",
-    "lint": "eslint src",
+    "lint": "eslint src demo",
     "prepack": "npm run check",
     "test:package": "node --test tests/package.test.mjs",
-    "check": "npm run lint && npm test && npm run build && npm run test:package"
+    "check": "npm run lint && npm test && npm run build && npm run test:package && npm run build:demo",
+    "dev": "vite demo --config demo/vite.config.js --host 127.0.0.1",
+    "build:demo": "vite build demo --config demo/vite.config.js --outDir ../demo-dist"
   },
   "keywords": [
     "react",

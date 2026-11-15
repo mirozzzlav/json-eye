@@ -296,6 +296,25 @@ const t = createTranslator("sk", {
 language, then English, then returns the original token. Dictionaries map exact
 strings to translations. A custom `t` function can implement interpolation.
 
+## Demo
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the local URL printed by Vite. The demo imports the library directly from
+`src/` and uses local SVG assets. Try English/Slovak content, section headings,
+collapsible nested JSON, inline links and photos, a custom photo renderer, and
+light/dark themes. Expand the input panel to inspect the data and section metadata.
+
+```sh
+npm run build:demo
+```
+
+The standalone static demo is built into `demo-dist/`, separately from the
+library's `dist/`. Demo sources and output are excluded from the npm package.
+
 ## Checks
 
 ```sh
@@ -319,7 +338,7 @@ npm pack
 ```
 
 `check` runs lint, rendering tests, the production build and a smoke test of the
-public package exports. `npm pack` runs the same checks through `prepack` and
+public package exports, followed by the demo build. `npm pack` runs the same checks through `prepack` and
 creates `react-json-eye-1.0.0.tgz`. See [PUBLISHING.md](./PUBLISHING.md) for release
 verification and publishing commands, and [CHANGELOG.md](./CHANGELOG.md) for changes.
 
