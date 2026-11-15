@@ -258,6 +258,8 @@ Built-in renderers:
   Each item supports `square` (default `true`); `false` preserves its native aspect ratio.
   A renderer-level `className` applies to all images; it is not an item field.
   An inline flex wrapper adds a 6px gap between images and wraps them onto new rows when needed.
+  Standalone photo values appear below their attribute name and omit the trailing JSON comma; photo values in arrays
+  are separated by a 6px gap.
 - `link`: `url` with rendered children, or the URL itself when value is omitted.
   Email gets `mailto:`; explicit `mailto:` URLs (including query parameters) are
   preserved. Other addresses without HTTP(S) get `https://`.
@@ -368,7 +370,7 @@ npm pack
 
 `check` runs lint, rendering tests, the production build and a smoke test of the
 public package exports, followed by the demo build. `npm pack` runs the same checks through `prepack` and
-creates `react-json-eye-2.0.0.tgz`. See [PUBLISHING.md](./PUBLISHING.md) for release
+creates `react-json-eye-2.0.1.tgz`. See [PUBLISHING.md](./PUBLISHING.md) for release
 verification and publishing commands, and [CHANGELOG.md](./CHANGELOG.md) for changes.
 
 The ESM build is exported from `dist/json-eye.js`. React, React DOM and Emotion

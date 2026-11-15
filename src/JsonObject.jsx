@@ -10,9 +10,26 @@ import { identity } from "./i18n.js";
 import { resolveRenderer } from "./builtinRenderers.js";
 import { style as s } from "./jsonStyles.js";
 import TextValue from "./TextValue.jsx";
-import { inlineTextContent } from "./inlineNodes.js";
+import { inlineTextContent, resolveInlineParts } from "./inlineNodes.js";
 
 const maxInlineArrayValueLength = 30;
+
+function isPhotoValue(value, t, renderers) {
+  if (isRenderNode(value)) {
+    const Component = resolveRenderer(value.renderer, renderers);
+    return Component
+      ? value.renderer === "photos"
+      : isPhotoValue(value.value, t, renderers);
+  }
+  if (typeof value !== "string") return false;
+  const parts = resolveInlineParts(t(value), t, renderers);
+  return (
+    parts.length === 3 &&
+    parts[0] === "" &&
+    parts[1].name === "photos" &&
+    parts[2] === ""
+  );
+}
 
 function isLongArrayValue(value, t, renderers) {
   const text =
@@ -91,6 +108,7 @@ function JsonContainer({
     key,
     item,
     content: contentValue(item),
+    photo: isPhotoValue(item, t, renderers),
   }));
   const canCollapse = collapsible && entries.length > 0;
   const inlineArray =
@@ -113,11 +131,15 @@ function JsonContainer({
         closing={<strong>{isArray ? "]" : "}"}</strong>}
         contentStyle={hasLongValues && s.jsonArrayValues}
       >
-        {entries.map(({ key, item, content }, index) => (
+        {entries.map(({ key, item, content, photo }, index) => (
           <span
             css={
               inlineArray
-                ? [s.jsonInlineValue, hasLongValues && s.jsonLongValue]
+                ? [
+                    s.jsonInlineValue,
+                    hasLongValues && s.jsonLongValue,
+                    photo && index < entries.length - 1 && s.jsonPhotoValue,
+                  ]
                 : [s.jsonProperty, isArray && isObject(content) && s.jsonItem]
             }
             key={key}
@@ -126,6 +148,7 @@ function JsonContainer({
               <>
                 <span css={s.jsonKey}>{t(key)}</span>
                 {": "}
+                {photo && <br />}
               </>
             )}
             <JsonObject
@@ -135,7 +158,9 @@ function JsonContainer({
               collapsible={collapsible}
               label={isArray ? `${label} ${Number(key) + 1}` : t(key)}
             />
-            {index < entries.length - 1 ? (inlineArray ? ", " : ",") : ""}
+            {index < entries.length - 1 && !photo
+              ? (inlineArray ? ", " : ",")
+              : ""}
           </span>
         ))}
       </CollapsibleContent>

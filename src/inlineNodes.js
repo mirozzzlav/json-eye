@@ -38,6 +38,7 @@ export function resolveInlineParts(text, t = identity, renderers) {
         ? t(node.props.text)
         : undefined;
     return {
+      name: node.name,
       Component,
       props: node.props,
       children,

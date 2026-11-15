@@ -596,7 +596,7 @@ test("built-in sections compose icons, backgrounds, photos and links without ren
   assert.match(html, /<img[^>]*src="\/jan.jpg"[^>]*alt="Portrait"/);
   assert.match(html, /href="https:\/\/example.com"/);
   assert.match(html, /background-image:url\(/);
-  assert.equal(text(html), '{profile: Profile{photo: ,web: "example.com"}}');
+  assert.equal(text(html), '{profile: Profile{photo: web: "example.com"}}');
   const basic = render({
     renderer: "section",
     props: { title: "Profile" },
@@ -654,6 +654,56 @@ test("photos accepts multiple descriptors, quoted strings and an empty collectio
   assert.match(mixed, /src="\/one, two.jpg"/);
   assert.equal(text(mixed), '"Before  after"');
   assert.equal(text(render("%photos[]%")), "");
+});
+
+test("photo values omit trailing commas while keeping spacing between images", () => {
+  const token = "%photos[{src:/one.jpg},{src:/two.jpg}]%";
+  const node = {
+    renderer: "photos",
+    props: { items: [{ src: "/one.jpg" }, { src: "/two.jpg" }] },
+  };
+  for (const photo of [token, node]) {
+    const objectHtml = render({ photo, next: true });
+    assert.equal(text(objectHtml), "{photo: next: true}");
+    assert.match(withoutStyles(objectHtml), /photo<\/span>: <br\/><span[^>]*data-json-photos/);
+    const html = render([photo, photo, true]);
+    assert.equal(text(html), "[true]");
+    assert.equal((html.match(/<img\b/g) ?? []).length, 4);
+    assert.match(html, /gap:6px/);
+    assert.match(html, /margin-right:6px/);
+  }
+  assert.equal(
+    text(render({ photo: "translated", next: true }, {
+      t: (value) => value === "translated" ? token : value,
+    })),
+    "{photo: next: true}",
+  );
+  for (const photo of ["%photos[{src:null}]%", `Before ${token}`]) {
+    assert.match(text(render({ photo, next: true })), /",next: true}/);
+  }
+  assert.equal(
+    text(render([token, true], { renderers: { photos: null } })),
+    `[${JSON.stringify(token)}, true]`,
+  );
+});
+
+test("single photos render below the attribute with translations and renderer overrides", () => {
+  const token = "%photos[{src:/portrait.jpg}]%";
+  function CustomPhotos() {
+    return createElement("img", { src: "/custom.jpg", alt: "Custom" });
+  }
+  for (const renderers of [undefined, { photos: CustomPhotos }]) {
+    const html = render({ photo: "portrait" }, {
+      t: (value) => value === "portrait" ? token : value,
+      renderers,
+    });
+    assert.match(withoutStyles(html), /photo<\/span>: <br\/>/);
+    assert.equal((html.match(/<img\b/g) ?? []).length, 1);
+  }
+  for (const photo of [`Before ${token}`, "%photos[{src:null}]%"]) {
+    assert.doesNotMatch(render({ photo }), /<br\b/);
+  }
+  assert.doesNotMatch(render({ photo: token }, { renderers: { photos: null } }), /<br\b/);
 });
 
 test("photos default to square cover and allow each item to preserve its native ratio", () => {

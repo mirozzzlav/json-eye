@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1
+
+- Standalone photos and photo collections now render below their JSON attribute name.
+- Removed trailing JSON commas after photo values and preserved spacing between photos in arrays.
+
 ## 2.0.0
 
 - Added controlled section expansion through `JsonEye` props `expanded` and `onExpandedChange(key, expanded)`.

@@ -153,10 +153,6 @@ export const style = {
     display: "block",
     marginLeft: tokens.spacing.large,
     marginBottom: tokens.spacing.propertyGap,
-    "&:has(> [data-json-photos])": {
-      display: "flex",
-      alignItems: "flex-start",
-    },
     "@media print": {
       marginBottom: "var(--json-property-gap, 3px)",
     },
@@ -173,6 +169,9 @@ export const style = {
     marginLeft: tokens.spacing.large,
     marginTop: tokens.arrayGap,
     marginBottom: tokens.arrayGap,
+  },
+  jsonPhotoValue: {
+    marginRight: tokens.spacing.compact,
   },
   jsonLongValue: {
     display: "block",
