@@ -339,7 +339,7 @@ npm pack
 
 `check` runs lint, rendering tests, the production build and a smoke test of the
 public package exports, followed by the demo build. `npm pack` runs the same checks through `prepack` and
-creates `react-json-eye-1.0.0.tgz`. See [PUBLISHING.md](./PUBLISHING.md) for release
+creates `react-json-eye-1.1.0.tgz`. See [PUBLISHING.md](./PUBLISHING.md) for release
 verification and publishing commands, and [CHANGELOG.md](./CHANGELOG.md) for changes.
 
 The ESM build is exported from `dist/json-eye.js`. React, React DOM and Emotion

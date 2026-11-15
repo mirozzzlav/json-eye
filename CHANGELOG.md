@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+- Photos now use square cropping by default; set `square: false` per image to preserve its native aspect ratio.
+- Photo collections wrap onto new rows with consistent spacing.
+- Centralized renderer style tokens.
+- Added an interactive standalone demo with English/Slovak content and light/dark themes.
+
 ## 1.0.0
 
 Initial release prepared for npm publication.
