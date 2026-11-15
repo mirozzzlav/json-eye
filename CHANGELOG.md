@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+- Breaking: removed section `background` support and its `--mobile-breakpoint` and `--tablet-breakpoint` theme tokens; apply backgrounds in application styles.
+
+- Added `--content-max-width` to constrain and wrap individual JSON values at every nesting depth, including without sections.
+
+- Added photo border width, style, color and radius theme tokens; borders are disabled by default.
+
+- Added `sectionRef(key, element)` for accessing root section DOM elements without internal IDs or routing dependencies.
+
+- Added an instance-local `theme` prop with flat CSS custom-property tokens for all built-in renderers, print styles.
+- Exported a token-only `defaultTheme` and migrated the demo to the flat theme API.
+- Fixed the document font being overridden by an internal `font-family: inherit` rule.
+- Breaking: removed the `--json-*` CSS variable API; supply appearance overrides through `theme`.
+
 ## 2.0.1
 
 - Standalone photos and photo collections now render below their JSON attribute name.

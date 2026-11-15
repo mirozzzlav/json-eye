@@ -5,7 +5,8 @@ React JSON document renderer. Package name: `react-json-eye`.
 [Source code](https://github.com/mirozzzlav/json-eye) ·
 [Issues](https://github.com/mirozzzlav/json-eye/issues)
 
-Keep data in ordinary JSON and pass presentation separately. `sections` uses the
+Keep data in ordinary JSON and pass presentation separately. Attribute names are
+shown in double quotes after translation, with JSON string escaping. `sections` uses the
 same first-level keys as `data`; each data property becomes one section.
 
 ```jsx
@@ -24,7 +25,6 @@ const sections = {
   aboutMe: {
     title: "About me",
     icon: "/icons/profile.svg",
-    background: "#f4f7fb",
   },
   skills: { title: "Skills", icon: "/icons/skills.svg" },
 };
@@ -32,8 +32,8 @@ const sections = {
 <JsonEye data={data} sections={sections} className="my-document" />;
 ```
 
-Only `data` is required. `sections`, `expanded`, `onExpandedChange`, `t`,
-`renderers` and `className` are optional. Pass parsed data, not JSON source text.
+Only `data` is required. `sections`, `expanded`, `onExpandedChange`, `sectionRef`, `t`,
+`renderers`, `theme` and `className` are optional. Pass parsed data, not JSON source text.
 
 ## Installation
 
@@ -68,8 +68,10 @@ For section headings and icons, pass the separate metadata shown above. Supply
 | `sections` | Omitted | Metadata keyed by root data properties; see below. |
 | `expanded` | Omitted | Controlled expansion map keyed by root sections; missing keys default to `true`. |
 | `onExpandedChange` | Omitted | Called with `(key, expanded)` when a section toggle is clicked. |
+| `sectionRef` | Omitted | Callback `(key, element)` receiving each root section DOM element, or `null` when detached. |
 | `t` | Identity function | Translates keys, string values and renderer labels. |
 | `renderers` | Built-in renderers | Instance-local component overrides or registrations. |
+| `theme` | Built-in theme | Flat CSS tokens, merged with `defaultTheme`. |
 | `className` | Omitted | CSS class for the outer document element. |
 
 ## Data and sections
@@ -110,28 +112,40 @@ controlled sections only change when the parent changes `expanded`.
 Omit `expanded` (or pass `null`) for internal toggle state, initially expanded.
 The callback, if supplied, also reports section toggles in this mode.
 Expansion props apply only when using a `sections` map and affect each section's
-outer JSON container. Empty containers and primitive values have no toggle.
+outer JSON container. Clicking a section heading toggles the same root container
+as its expand/collapse button; the heading also supports Enter and Space.
+Empty containers and primitive values have no toggle.
 Nested objects and arrays start expanded and toggle independently; their toggles
 do not trigger the section callback. All content stays visible in print.
 
-Optional `background` styles the whole section, including its heading. Use a CSS
-color such as `"#f4f7fb"`, a CSS background such as `"linear-gradient(...)"`, or an
-image path/URL such as `"/images/pattern.svg"`. Image backgrounds cover the section,
-are centered, and do not repeat. Omit `background` for no added background.
-Background values are literal and are not translated or interpolated.
+### Accessing section elements
 
-Background paths are supplied directly in `sections`, without a dictionary or
-`backgrounds` prop:
+Use `sectionRef(key, element)` to keep references to root sections without depending
+on internal DOM IDs or markup. It applies only when using a `sections` map.
 
-```js
-const sections = {
-  aboutMe: {
-    title: "About me",
-    icon: "/icons/profile.svg",
-    background: "/backgrounds/pattern.svg",
-  },
-};
+```jsx
+const sectionElements = useRef(new Map());
+const registerSection = useCallback((key, element) => {
+  if (element) sectionElements.current.set(key, element);
+  else sectionElements.current.delete(key);
+}, []);
+
+<JsonEye data={data} sections={sections} sectionRef={registerSection} />;
 ```
+
+Import `useRef` and `useCallback` from React. The callback receives the root
+`<section>` after mounting and `null` when detached. Expanding or collapsing
+keeps that element mounted and does not trigger the callback. Keep the callback
+stable to avoid detaching and reattaching refs on rerenders; changing the callback
+clears the old ref with `null` and supplies the element to the new callback.
+React Strict Mode may perform additional ref setup/cleanup cycles in development.
+Refs do not run during server rendering.
+
+The application owns routing and scrolling. After expanding a section, scroll
+in an effect after the updated content renders, using the stored element and any
+application-specific header offset. Custom `section` renderers receive an
+`elementRef` prop: forward it to the built-in `Section`, or attach it as `ref` to
+your own root DOM element. No extra wrapper element is added by `sectionRef`.
 
 Without `sections` (or with `sections={null}`), the root uses the same JSON
 rendering rules as nested values: objects retain keys and braces, arrays retain
@@ -288,11 +302,89 @@ A `null` override leaves an inline placeholder literal.
 
 ## Styling and collapse
 
-Core styles are scoped and require no global stylesheet.
-Customize `--json-color-text`, `--json-color-background`, `--json-color-accent`
-and `--json-font-family` on the document or an ancestor. `JsonEye` forwards
-`className` and supports Emotion's `css` prop. React and Emotion are required.
-Section, link and photos components forward a renderer-level `className`.
+Core styles are scoped and require no global stylesheet. Configure the document's
+appearance through the optional `theme` prop: a flat object of CSS custom-property
+names and values. Each instance merges known tokens with `defaultTheme` and sets
+all resolved variables on its root element. Built-in styles read them using
+`var(...)`. Omitted, `undefined` or `null` tokens keep their defaults. Unknown
+tokens and nested objects are ignored. Inputs are never mutated.
+
+```jsx
+import JsonEye, { defaultTheme } from "react-json-eye";
+
+const theme = {
+  "--color-text": "#222",
+  "--color-background": "#fff",
+  "--color-accent": "#2563eb",
+  "--font-family": "Arial, sans-serif",
+  "--font-size": "16px",
+  "--line-height": 1.5,
+  "--heading-text-transform": "none",
+  "--property-gap": "8px",
+  "--section-gap": "32px",
+  "--photo-width": "160px",
+  "--icon-size": "36px",
+  "--control-radius": "4px",
+  "--icon-radius": "8px",
+  "--print-font-size": "12px",
+  "--print-property-gap": "2px",
+};
+
+<JsonEye data={data} theme={theme} />;
+// Override just one token; all other values use the defaults.
+<JsonEye data={data} theme={{ "--color-accent": "#e11d48" }} />;
+
+// Inspect or reuse the complete set of default tokens.
+console.log(defaultTheme);
+```
+
+Use CSS strings with units for lengths; font weights and line heights can be
+numbers. Standard CSS values, including `var(--app-accent)` references to your
+application's variables, work for style tokens.
+
+The complete token names and default values are exported as `defaultTheme`
+(see [src/defaultTheme.js](./src/defaultTheme.js)):
+
+| Purpose | Tokens |
+| --- | --- |
+| Colors | `--color-text`, `--color-background` (controls and icon foreground), `--color-accent` |
+| Typography | `--font-family`, `--font-size`, `--line-height`, `--heading-font-size`, `--heading-line-height`, `--heading-text-transform`, `--control-font-size` (toggle SVG size) |
+| Font weights | `--font-weight-regular`, `--font-weight-bold`, `--font-weight-heading` |
+| Spacing | `--photo-gap`, `--icon-padding`, `--property-gap`, `--control-gap`, `--control-margin`, `--focus-offset`, `--heading-gap`, `--heading-margin`, `--indent`, `--section-gap`, `--array-gap`, `--item-gap` |
+| Value width | `--content-max-width` (default `"100%"`; limits individual values, inline array items and built-in links/photos at every nesting depth) |
+| Sizes and radii | `--photo-width`, `--icon-size`, `--control-size`, `--control-radius`, `--icon-radius` |
+| Borders and interaction | `--photo-border-width`, `--photo-border-style`, `--photo-border-color`, `--photo-border-radius`, `--border-width`, `--hover-accent-weight` (a percentage such as `"12%"`) |
+| Print typography | `--print-font-size`, `--print-line-height`, `--print-heading-font-size`, `--print-heading-line-height` |
+| Print sizing and spacing | `--print-icon-size`, `--print-icon-padding`, `--print-section-gap`, `--print-property-gap`, `--print-item-gap`, `--print-heading-margin` |
+
+The value width is a wrapping limit, not a character-count or truncation limit.
+For example, `"--content-max-width": "90ch"` wraps long values to that width
+or the available parent width, whichever is smaller, including in print. Section
+headings keep their full width. Custom renderers must constrain
+their own content if they use fixed dimensions or disable wrapping.
+
+Variables are inherited by nested JSON, built-in sections, links, photos and
+built-ins reused inside custom renderers, including `render(data)` calls.
+Standalone exports have CSS fallbacks when used outside `JsonEye`. Each nested
+`JsonEye` sets its own theme and defaults, so it does not inherit another
+instance's overrides. Print tokens apply only when printing.
+
+Keep reusable theme objects outside components and use a new object when changing
+tokens in React. `defaultTheme.js` contains only token definitions; merging logic
+lives separately in `resolveTheme.js`.
+
+The old `--json-*` names are no longer read. Move overrides into `theme` using
+the flat names above: for example, `--json-color-accent` becomes
+`"--color-accent"`, `--json-font-family` becomes `"--font-family"`, and
+`--json-print-line-height` becomes `"--print-line-height"`. Use `"--array-gap"`
+for `--json-array-gap`, `"--print-property-gap"` for `--json-property-gap`, and
+both `"--item-gap"` and `"--print-item-gap"` for `--json-item-gap` if it should
+affect screen and print.
+
+`className` and Emotion's `css` prop remain available for application layout and
+custom renderer styling. Section, link and photos components also forward a
+renderer-level `className`. Section backgrounds belong in application styles.
+React and Emotion are required.
 
 `DocumentSection` provides a heading with a unique accessible ID. Root and nested
 containers start expanded; empty containers have no toggle. Content remains
@@ -300,8 +392,23 @@ mounted and visible when printing. Both photo variants use `width: 120px`, `max-
 `height: auto` to fit their container. By default, `aspect-ratio: 1 / 1` and
 `object-fit: cover` crop them to squares; item-level `square: false` preserves
 the native aspect ratio.
-Page dimensions, global styles, custom photo sizes and decorations are controlled
-by the consuming application.
+Page dimensions and global styles are controlled by the consuming application.
+Use theme tokens for built-in photo sizes and borders. Photo borders are disabled
+by default (`--photo-border-width: "0px"`), with `solid` style, `currentColor`
+and a `0px` radius. Enable and customize them through `theme`:
+
+```jsx
+<JsonEye data={data} theme={{
+  "--photo-border-width": "1px",
+  "--photo-border-style": "solid",
+  "--photo-border-color": "#ccc",
+  "--photo-border-radius": "8px",
+}} />;
+```
+
+Borders are included in the photo width (`box-sizing: border-box`). These tokens
+apply to both square and native-ratio photos, including standalone `Photos`
+with the same CSS variable fallbacks. Use a custom renderer for other decorations.
 
 Standalone `JsonObject` supports `value`, `renderers`, `t`,
 `collapsible`, `initiallyExpanded`, `expanded`, `onExpandedChange` and `label`.
@@ -375,8 +482,8 @@ verification and publishing commands, and [CHANGELOG.md](./CHANGELOG.md) for cha
 
 The ESM build is exported from `dist/json-eye.js`. React, React DOM and Emotion
 remain external peer dependencies. Named exports are `JsonEye`, `JsonObject`,
-`DocumentSection`, `CollapsibleContent`, `Photos`, `Link`, `Section`, `Icon` and
-`createTranslator`; the default export is `JsonEye`.
+`DocumentSection`, `CollapsibleContent`, `Photos`, `Link`, `Section`, `Icon`,
+`createTranslator` and `defaultTheme`; the default export is `JsonEye`.
 
 ## License
 

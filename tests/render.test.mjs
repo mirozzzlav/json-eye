@@ -39,9 +39,9 @@ test("plain root objects render as JSON without automatic sections or headings",
   assert.doesNotMatch(html, /<section\b|<h3\b/);
   assert.equal(
     text(html),
-    '{name: "aboutTitle",projects: [{title: "Shop",technologies: ["React", "Python"],published: true}],languages: {slovak: "native"},missing: null}',
+    '{"name": "aboutTitle","projects": [{"title": "Shop","technologies": ["React", "Python"],"published": true}],"languages": {"slovak": "native"},"missing": null}',
   );
-  assert.ok(!html.includes("<svg"));
+  assert.doesNotMatch(html, /<img\b/);
 });
 
 test("section metadata decorates clean JSON in data order without changing it", () => {
@@ -57,51 +57,13 @@ test("section metadata decorates clean JSON in data order without changing it", 
     t: (token) => (token === "profileTitle" ? "Profile" : token),
   });
   assert.equal((html.match(/<section\b/g) ?? []).length, 2);
-  assert.equal(text(html), 'Profile{name: "Jane"}Skills["React"]');
-  assert.doesNotMatch(text(html), /aboutMe:|skills:|Not shown/);
+  assert.equal(text(html), 'Profile{"name": "Jane"}Skills["React"]');
+  assert.doesNotMatch(text(html), /"aboutMe":|"skills":|Not shown/);
   assert.equal(JSON.stringify({ data, sections }), original);
   assert.equal(
     text(render(data)),
-    '{aboutMe: {name: "Jane"},skills: ["React"]}',
+    '{"aboutMe": {"name": "Jane"},"skills": ["React"]}',
   );
-});
-
-test("section backgrounds accept CSS colors and image paths through metadata", () => {
-  const data = { profile: { name: "Jane" } };
-  const colored = render(data, {
-    sections: { profile: { title: "Profile", background: "#f4f7fb" } },
-  });
-  assert.match(colored, /background:#f4f7fb/);
-  assert.equal(text(colored), 'Profile{name: "Jane"}');
-  const image = render(data, {
-    sections: {
-      profile: { title: "Profile", background: "/images/my pattern.svg" },
-    },
-  });
-  assert.match(image, /background-image:url\("\/images\/my pattern.svg"\)/);
-  assert.match(image, /background-size:cover/);
-  assert.equal(text(image), text(colored));
-  const plain = render(data, { sections: { profile: { title: "Profile" } } });
-  assert.doesNotMatch(plain, /background-image:|background:#f4f7fb/);
-});
-
-test("direct backgrounds work in nested sections and explicit render calls", () => {
-  const section = {
-    renderer: "section",
-    props: { title: "Nested", background: "/backgrounds/pattern.svg" },
-    value: {},
-  };
-  function Panel({ render, content }) {
-    return createElement("aside", null, render(content));
-  }
-  for (const value of [
-    section,
-    { nested: [section] },
-    { renderer: "panel", props: { content: section } },
-  ]) {
-    const html = render(value, { renderers: { panel: Panel } });
-    assert.match(html, /background-image:url\("\/backgrounds\/pattern.svg"\)/);
-  }
 });
 
 test("section metadata has safe defaults and applies only at the document root", () => {
@@ -109,7 +71,7 @@ test("section metadata has safe defaults and applies only at the document root",
   const sections = Object.create({ first: { title: "Inherited" } });
   assert.equal(
     text(render(data, { sections })),
-    'Section{nested: {title: "Literal",value: 3}}Section{}',
+    'Section{"nested": {"title": "Literal","value": 3}}Section{}',
   );
   assert.equal(text(render({}, { sections })), "");
   assert.equal(text(render([1, 2], { sections })), "[1, 2]");
@@ -163,13 +125,13 @@ test("inline placeholders propagate into render calls without changing keys or p
   );
   assert.ok(html.includes(`title="${token}"`));
   assert.match(html, /<img[^>]*src="\/portrait.jpg"/);
-  assert.equal(text(html), `{${token}: }`);
+  assert.equal(text(html), `{"${token}": }`);
 });
 
 test("plain JSON preserves value and metadata-like fields at every depth", () => {
   assert.equal(
     text(render({ value: 42, unit: "kg" })),
-    '{value: 42,unit: "kg"}',
+    '{"value": 42,"unit": "kg"}',
   );
   const value = {
     value: "%link% %years%",
@@ -179,7 +141,7 @@ test("plain JSON preserves value and metadata-like fields at every depth", () =>
     url: "example.com",
   };
   const expected =
-    '{value: "%link% %years%",hidden: true,omitComma: true,title: "Literal",url: "example.com"}';
+    '{"value": "%link% %years%","hidden": true,"omitComma": true,"title": "Literal","url": "example.com"}';
   const object = renderToStaticMarkup(createElement(JsonObject, { value }));
   assert.equal(text(object), expected);
   const document = render({
@@ -189,7 +151,7 @@ test("plain JSON preserves value and metadata-like fields at every depth", () =>
   });
   assert.equal(
     text(document),
-    `{item: ${expected},array: [${expected},{value: false}],last: null}`,
+    `{"item": ${expected},"array": [${expected},{"value": false}],"last": null}`,
   );
   assert.doesNotMatch(document, /<a\b|<img\b/);
 });
@@ -212,8 +174,8 @@ test("root arrays, primitives, null and empty containers render", () => {
   }
   assert.equal(text(render(false)), "false");
   assert.equal(text(render([])), "[]");
-  assert.equal(text(render({})), "{}");
-  assert.equal(text(render({ empty: {} })), "{empty: {}}");
+  assert.equal(text(render({})), '{}');
+  assert.equal(text(render({ empty: {} })), '{"empty": {}}');
 });
 
 test("sections are reusable with arbitrary children and unique accessible headings", async () => {
@@ -284,6 +246,9 @@ test("collapsible content supports arbitrary children and accessible controls", 
     assert.ok(html.includes(`id="${controls}"`));
     assert.ok(html.includes(`aria-expanded="${initiallyExpanded}"`));
     assert.ok(html.includes("<em>Content</em>"));
+    assert.match(html, /<svg[^>]*aria-hidden="true"[^>]*focusable="false"/);
+    assert.match(html, /<path d="M6 12h12"/);
+    assert.equal(html.includes('d="M12 6v12"'), !initiallyExpanded);
     assert.equal(html.includes("@media screen"), !initiallyExpanded);
   }
 });
@@ -302,7 +267,7 @@ test("registered components receive props, raw value and recursively rendered ch
     { renderers: { box: Box } },
   );
   assert.match(html, /<article data-heading="Custom">/);
-  assert.equal(text(html), "{count: 2,flag: false}");
+  assert.equal(text(html), '{"count": 2,"flag": false}');
   assert.doesNotMatch(html, /<section\b|<h3\b/);
 });
 
@@ -326,7 +291,7 @@ test("renderers work at every depth and nodes without value do not acquire child
     },
     { renderers: { badge: Badge, frame: Frame } },
   );
-  assert.equal(text(html), "{items: [Hi,{nested: [1, true, null]}]}");
+  assert.equal(text(html), '{"items": [Hi,{"nested": [1, true, null]}]}');
   assert.equal((html.match(/<aside\b/g) ?? []).length, 2);
   assert.match(html, /<em>Hi<\/em>/);
 });
@@ -390,7 +355,7 @@ test("renderer dictionaries are isolated and only own registrations are used", (
   );
   assert.equal(
     text(render({ renderer: 42, value: 1 })),
-    "{renderer: 42,value: 1}",
+    "{\"renderer\": 42,\"value\": 1}",
   );
 });
 
@@ -512,7 +477,7 @@ test("built-in sections translate titles and render nested content and applicati
   });
   assert.equal((html.match(/<section\b/g) ?? []).length, 2);
   assert.match(html, /class="profile /);
-  assert.ok(text(html).startsWith('Profile{name: "Jane",website: example.com'));
+  assert.ok(text(html).startsWith('Profile{"name": "Jane","website": example.com'));
   assert.match(html, /href="https:\/\/example.com"/);
   const ids = [...html.matchAll(/<h3 id="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, 2);
@@ -569,14 +534,13 @@ test("icon paths work in nested values and explicit render calls without an icon
   assert.match(standalone, /<img[^>]*src="\/icons\/star.svg"/);
 });
 
-test("built-in sections compose icons, backgrounds, photos and links without renderer overrides", () => {
+test("built-in sections compose icons, photos and links without renderer overrides", () => {
   const html = render({
     profile: {
       renderer: "section",
       props: {
         title: "Profile",
         icon: "/icons/about-me.svg",
-        background: "/images/pattern.svg",
       },
       value: {
         photo: {
@@ -595,16 +559,15 @@ test("built-in sections compose icons, backgrounds, photos and links without ren
   assert.equal((html.match(/<img\b/g) ?? []).length, 2);
   assert.match(html, /<img[^>]*src="\/jan.jpg"[^>]*alt="Portrait"/);
   assert.match(html, /href="https:\/\/example.com"/);
-  assert.match(html, /background-image:url\(/);
-  assert.equal(text(html), '{profile: Profile{photo: web: "example.com"}}');
+  assert.equal(text(html), '{"profile": Profile{"photo": "web": "example.com"}}');
   const basic = render({
     renderer: "section",
     props: { title: "Profile" },
     value: { name: "Jane" },
   });
-  assert.equal(text(basic), 'Profile{name: "Jane"}');
+  assert.equal(text(basic), 'Profile{"name": "Jane"}');
   assert.equal((basic.match(/<section\b/g) ?? []).length, 1);
-  assert.doesNotMatch(basic, /background-image:url\(|<svg\b/);
+  assert.doesNotMatch(basic, /background-image:url\(|<img\b/);
 });
 
 test("email renderer keeps contact arrays inline and opens a mail client", () => {
@@ -622,7 +585,7 @@ test("email renderer keeps contact arrays inline and opens a mail client", () =>
   assert.doesNotMatch(html, /target="_blank"|<br\b/);
   assert.equal(
     text(html),
-    '{contact: ["+421 911 595 643", "mirofurinda@proton.me"]}',
+    '{"contact": ["+421 911 595 643", "mirofurinda@proton.me"]}',
   );
 });
 
@@ -664,22 +627,22 @@ test("photo values omit trailing commas while keeping spacing between images", (
   };
   for (const photo of [token, node]) {
     const objectHtml = render({ photo, next: true });
-    assert.equal(text(objectHtml), "{photo: next: true}");
-    assert.match(withoutStyles(objectHtml), /photo<\/span>: <br\/><span[^>]*data-json-photos/);
+    assert.equal(text(objectHtml), '{"photo": "next": true}');
+    assert.match(withoutStyles(objectHtml), /&quot;photo&quot;<\/span>: <br\/>(?:<span[^>]*>)?<span[^>]*data-json-photos/);
     const html = render([photo, photo, true]);
     assert.equal(text(html), "[true]");
     assert.equal((html.match(/<img\b/g) ?? []).length, 4);
-    assert.match(html, /gap:6px/);
-    assert.match(html, /margin-right:6px/);
+    assert.match(html, /gap:var\(--photo-gap, 6px\)/);
+    assert.match(html, /margin-right:var\(--photo-gap, 6px\)/);
   }
   assert.equal(
     text(render({ photo: "translated", next: true }, {
       t: (value) => value === "translated" ? token : value,
     })),
-    "{photo: next: true}",
+    "{\"photo\": \"next\": true}",
   );
   for (const photo of ["%photos[{src:null}]%", `Before ${token}`]) {
-    assert.match(text(render({ photo, next: true })), /",next: true}/);
+    assert.match(text(render({ photo, next: true })), /","next": true}/);
   }
   assert.equal(
     text(render([token, true], { renderers: { photos: null } })),
@@ -697,7 +660,7 @@ test("single photos render below the attribute with translations and renderer ov
       t: (value) => value === "portrait" ? token : value,
       renderers,
     });
-    assert.match(withoutStyles(html), /photo<\/span>: <br\/>/);
+    assert.match(withoutStyles(html), /&quot;photo&quot;<\/span>: <br\/>/);
     assert.equal((html.match(/<img\b/g) ?? []).length, 1);
   }
   for (const photo of [`Before ${token}`, "%photos[{src:null}]%"]) {
@@ -731,6 +694,35 @@ test("photos default to square cover and allow each item to preserve its native 
   const images = [...html.matchAll(/<img[^>]*class="([^"]*)"/g)];
   assert.equal(images.length, 2);
   assert.notEqual(images[0][1], images[1][1]);
+});
+
+test("photo borders default to zero and use theme tokens for both aspect ratios and standalone exports", async () => {
+  const { Photos, defaultTheme } = await server.ssrLoadModule("/src/index.js");
+  assert.equal(defaultTheme["--photo-border-width"], "0px");
+  assert.equal(defaultTheme["--photo-border-style"], "solid");
+  assert.equal(defaultTheme["--photo-border-color"], "currentColor");
+  assert.equal(defaultTheme["--photo-border-radius"], "0px");
+  for (const square of [true, false]) {
+    const items = [{ src: "/photo.jpg", square }];
+    const theme = {
+      "--photo-border-width": "2px",
+      "--photo-border-style": "dashed",
+      "--photo-border-color": "#123456",
+      "--photo-border-radius": "8px",
+    };
+    const html = render({ renderer: "photos", props: { items } }, { theme });
+    for (const [name, value] of Object.entries(theme)) {
+      assert.ok(html.includes(`${name}:${value}`));
+    }
+    const standalone = renderToStaticMarkup(createElement(Photos, { items }));
+    for (const output of [html, standalone]) {
+      assert.match(output, /box-sizing:border-box/);
+      assert.match(output, /border-width:var\(--photo-border-width, 0px\)/);
+      assert.match(output, /border-style:var\(--photo-border-style, solid\)/);
+      assert.match(output, /border-color:var\(--photo-border-color, currentColor\)/);
+      assert.match(output, /border-radius:var\(--photo-border-radius, 0px\)/);
+    }
+  }
 });
 
 test("unknown or malformed placeholders stay literal and text never becomes HTML", () => {
@@ -834,11 +826,11 @@ test("undefined entries are filtered and data-like props are not interpreted as 
         $: false,
       }),
     ),
-    "{shown: {real: 2},$: false}",
+    "{\"shown\": {\"real\": 2},\"$\": false}",
   );
   assert.equal(
     text(render({ item: { value: 1, hidden: true } })),
-    "{item: {value: 1,hidden: true}}",
+    "{\"item\": {\"value\": 1,\"hidden\": true}}",
   );
 });
 
@@ -857,7 +849,7 @@ test("disabling collapse also reaches renderer children and explicit render call
       collapsible: false,
     }),
   );
-  assert.equal(text(html), "{nested: [1,{child: 2}]}{extra: [3]}");
+  assert.equal(text(html), '{"nested": [1,{"child": 2}]}{"extra": [3]}');
   assert.doesNotMatch(html, /<button\b|display:none/);
 });
 
@@ -879,10 +871,10 @@ test("root objects and explicit section contents start expanded without automati
     [...html.matchAll(/<button\b[^>]*aria-expanded="([^"]+)"/g)].map(
       (match) => match[1],
     ),
-    ["true", "true", "true", "true", "true", "true"],
+    ["true", "true", "true", "true", "true", "true", "true", "true"],
   );
   const empty = renderToStaticMarkup(createElement(JsonObject, { value: {} }));
-  assert.equal(text(empty), "{}");
+  assert.equal(text(empty), '{}');
   assert.doesNotMatch(empty, /<button\b|display:none/);
 });
 
@@ -953,25 +945,6 @@ test("web URLs containing credentials or query emails stay web links", () => {
   assert.doesNotMatch(html, /<a\b/);
 });
 
-test("CSS backgrounds containing image URLs are not wrapped as image paths", () => {
-  for (const background of [
-    'url("/pattern.svg?v=1")',
-    'url("/pattern.png#image") center / cover no-repeat',
-    'linear-gradient(white, transparent), url("/pattern.svg?v=1")',
-  ]) {
-    const html = render(
-      { profile: {} },
-      { sections: { profile: { background } } },
-    );
-    assert.ok(
-      html
-        .replaceAll(" ", "")
-        .includes(`background:${background.replaceAll(" ", "")}`),
-    );
-    assert.doesNotMatch(html, /background-image:/);
-  }
-});
-
 test("expanded map controls each section independently of nested containers", () => {
   const data = { closed: { nested: [1] }, open: { nested: [2] }, default: [3] };
   const sections = {
@@ -984,8 +957,8 @@ test("expanded map controls each section independently of nested containers", ()
   const states = [
     ...html.matchAll(/<button\b[^>]*aria-expanded="([^"]+)"/g),
   ].map((match) => match[1]);
-  assert.deepEqual(states, ["false", "true", "true", "true", "true"]);
-  assert.ok(text(html).includes("Closed{nested: [1]}"));
+  assert.deepEqual(states, ["false", "false", "true", "true", "true", "true", "true", "true"]);
+  assert.ok(text(html).includes('Closed{"nested": [1]}'));
   assert.equal(JSON.stringify({ data, sections, expanded }), snapshot);
   const defaults = render(
     { missing: [1], invalid: [2], empty: {} },
@@ -1002,7 +975,7 @@ test("expanded map controls each section independently of nested containers", ()
     [...defaults.matchAll(/<button\b[^>]*aria-expanded="([^"]+)"/g)].map(
       (match) => match[1],
     ),
-    ["true", "true"],
+    ["true", "true", "true", "true"],
   );
 });
 
@@ -1015,7 +988,7 @@ test("section expansion ignores legacy metadata and inherited map properties", (
       [...html.matchAll(/<button\b[^>]*aria-expanded="([^"]+)"/g)].map(
         (match) => match[1],
       ),
-      ["true", "true"],
+      ["true", "true", "true", "true"],
     );
   }
   const plain = render(data, { expanded: { details: false, other: false } });
@@ -1043,4 +1016,235 @@ test("explicit mailto links preserve their scheme and email options", () => {
     assert.ok(html.includes(`href="${url}"`));
     assert.doesNotMatch(html, /target="_blank"|https:\/\/mailto:/);
   }
+});
+
+test("partial themes reach nested built-ins, custom render calls and print styles", async () => {
+  const { Photos } = await server.ssrLoadModule("/src/index.js");
+  function FramedPhotos(props) {
+    return createElement(Photos, { ...props, className: "framed" });
+  }
+  function Panel({ render, details }) {
+    return createElement("aside", null, render(details));
+  }
+  const theme = {
+    "--color-text": "#123456",
+    "--color-accent": "#654321",
+    "--color-background": "#fedcba",
+    "--font-family": "Arial, sans-serif",
+    "--font-size": "17px",
+    "--heading-text-transform": "none",
+    "--indent": "29px",
+    "--photo-gap": "11px",
+    "--photo-width": "155px",
+    "--photo-border-width": "3px",
+    "--photo-border-style": "dashed",
+    "--photo-border-color": "#abcdef",
+    "--photo-border-radius": "7px",
+    "--content-max-width": "70ch",
+    "--icon-size": "44px",
+    "--control-size": "28px",
+    "--control-radius": "5px",
+    "--icon-radius": "9px",
+    "--border-width": "1px",
+    "--hover-accent-weight": "20%",
+    "--print-font-size": "13px",
+    "--print-icon-size": "26px",
+    "--print-property-gap": "2px",
+  };
+  const snapshot = JSON.stringify(theme);
+  const html = render({
+    profile: {
+      nested: [{
+        renderer: "panel",
+        props: {
+          details: {
+            photo: "%photos[{src:/portrait.jpg}]%",
+            web: "%link;url=example.com%",
+          },
+        },
+      }],
+    },
+  }, {
+    theme,
+    sections: { profile: { title: "Profile", icon: "/profile.svg" } },
+    renderers: { panel: Panel, photos: FramedPhotos },
+  });
+  for (const [name, value] of Object.entries(theme)) {
+    assert.ok(html.replaceAll(" ", "").includes(`${name}:${value};`.replaceAll(" ", "")), `Root variable ${name}`);
+  }
+  assert.match(html, /max-width:min\(100%, var\(--content-max-width, 100%\)\)/);
+  assert.match(html, /--line-height:22px/);
+  assert.match(html, /--print-line-height:18px/);
+  assert.match(html, /font-family:var\(--font-family,/);
+  assert.doesNotMatch(html, /font-family:inherit/);
+  assert.match(html, /font-size:var\(--font-size, 18px\);line-height:var\(--line-height, 22px\)/);
+  assert.match(html, /font-size:var\(--print-font-size, 14px\);line-height:var\(--print-line-height, 18px\)/);
+  assert.match(html, /text-transform:var\(--heading-text-transform, uppercase\)/);
+  assert.match(html, /color:var\(--color-text, #000000\)/);
+  assert.match(html, /margin-left:var\(--indent, 24px\)/);
+  assert.match(html, /gap:var\(--photo-gap, 6px\)/);
+  assert.match(html, /width:var\(--photo-width, 120px\);max-width:100%;height:auto/);
+  assert.match(html, /width:var\(--icon-size, 40px\);height:var\(--icon-size, 40px\)/);
+  assert.match(html, /width:var\(--print-icon-size, 32px\);height:var\(--print-icon-size, 32px\)/);
+  assert.match(html, /border:var\(--border-width, 2px\) solid var\(--color-accent, #49a1f7\)/);
+  assert.match(html, /color-mix\(in srgb, var\(--color-accent, #49a1f7\) var\(--hover-accent-weight, 12%\), var\(--color-background, #ffffff\)\)/);
+  assert.match(html, /@media print\{[^}]*margin-bottom:var\(--print-property-gap, 3px\)/);
+  assert.match(html, /class="framed /);
+  assert.equal(JSON.stringify(theme), snapshot);
+  assert.match(render({ normal: true }), /--color-accent:#49a1f7/);
+});
+
+test("sibling and nested JsonEye themes remain isolated", () => {
+  function NestedDocument() {
+    return createElement(JsonEye, { data: { child: true }, className: "child" });
+  }
+  const html = renderToStaticMarkup(createElement("main", null,
+    createElement(JsonEye, {
+      data: { renderer: "nested" },
+      className: "parent",
+      theme: { "--color-accent": "#aa1122" },
+      renderers: { nested: NestedDocument },
+    }),
+    createElement(JsonEye, {
+      data: { sibling: true },
+      className: "sibling",
+      theme: { "--color-accent": "#3344bb" },
+    }),
+  ));
+  for (const [label, accent] of [["parent", "#aa1122"], ["child", "#49a1f7"], ["sibling", "#3344bb"]]) {
+    const className = html.match(new RegExp(`class="${label} ([^"]+)"`))?.[1];
+    assert.ok(className, `Root class for ${label}`);
+    const ruleStart = html.indexOf(`.${className}{`);
+    assert.ok(ruleStart >= 0);
+    const rule = html.slice(ruleStart, html.indexOf("}", ruleStart));
+    assert.ok(rule.includes(`--color-accent:${accent};`), `Scoped accent for ${label}`);
+  }
+  assert.equal(text(html), '{"child": true}{"sibling": true}');
+});
+
+test("theme merging preserves defaults and ignores unknown or invalid tokens", async () => {
+  const { defaultTheme } = await server.ssrLoadModule("/src/defaultTheme.js");
+  const { resolveTheme } = await server.ssrLoadModule("/src/resolveTheme.js");
+  const snapshot = JSON.stringify(defaultTheme);
+  const overrides = Object.assign(Object.create({ "--color-accent": "red" }), {
+    "--color-text": "#456789",
+    "--font-size": null,
+    "--line-height": 1.5,
+    "--property-gap": 0,
+    "--indent": undefined,
+    "--font-weight-bold": NaN,
+    "--photo-width": {},
+    "--unknown": "ignored",
+    colors: { accent: "red" },
+  });
+  const theme = resolveTheme(overrides);
+  assert.equal(theme["--color-text"], "#456789");
+  assert.equal(theme["--color-accent"], defaultTheme["--color-accent"]);
+  assert.equal(theme["--font-size"], "18px");
+  assert.equal(theme["--line-height"], 1.5);
+  const html = render({ x: 1 }, { theme: overrides });
+  assert.match(html, /--line-height:1\.5;/);
+  assert.match(html, /--property-gap:0;/);
+  assert.doesNotMatch(html, /--unknown:/);
+  assert.equal(theme["--property-gap"], 0);
+  assert.equal(theme["--indent"], "24px");
+  assert.equal(theme["--font-weight-bold"], 700);
+  assert.equal(theme["--photo-width"], "120px");
+  assert.deepEqual(Object.keys(theme), Object.keys(defaultTheme));
+  assert.equal(JSON.stringify(defaultTheme), snapshot);
+  assert.equal(render({ x: 1 }, { theme: null }), render({ x: 1 }, { theme: {} }));
+});
+
+
+test("section headings expose the root expansion state and accessible content target", () => {
+  for (const expanded of [true, false]) {
+    const html = withoutStyles(render(
+      { details: { nested: [1] } },
+      { sections: { details: { title: "Details" } }, expanded: { details: expanded } },
+    ));
+    const heading = html.match(/<h3[^>]*>([\s\S]*?)<\/h3>/)[1];
+    assert.match(heading, new RegExp(`aria-expanded="${expanded}"`));
+    assert.match(heading, />Details<\/button>/);
+    const target = heading.match(/aria-controls="([^"]+)"/)[1];
+    assert.ok(html.includes(`<div id="${target}"`));
+    assert.deepEqual(
+      [...html.matchAll(/aria-expanded="([^"]+)"/g)].map((match) => match[1]),
+      [String(expanded), String(expanded), "true"],
+    );
+  }
+});
+
+test("empty and primitive section headings stay static and disabled collapse is respected", () => {
+  const html = withoutStyles(render(
+    { empty: {}, list: [], missing: { value: undefined }, primitive: 1 },
+    { sections: {} },
+  ));
+  assert.doesNotMatch(html, /<button/);
+  const disabled = renderToStaticMarkup(createElement(JsonObject, {
+    value: { renderer: "section", props: { title: "Details" }, value: { nested: [1] } },
+    collapsible: false,
+  }));
+  assert.doesNotMatch(disabled, /<button/);
+});
+
+
+test("sectionRef binds data keys and reaches custom section renderers without changing metadata", () => {
+  const data = { projects: [], aboutMe: {}, omitted: undefined };
+  const sections = { projects: { title: "Projects" }, missing: {} };
+  const original = JSON.stringify(sections);
+  const refs = new Map();
+  const calls = [];
+  const sectionRef = (key, element) => calls.push([key, element]);
+  function CustomSection({ value, elementRef }) {
+    refs.set(value === data.projects ? "projects" : "aboutMe", elementRef);
+    return createElement("section", { ref: elementRef });
+  }
+  render(data, { sections, sectionRef, renderers: { section: CustomSection } });
+  assert.deepEqual([...refs.keys()], ["projects", "aboutMe"]);
+  assert.deepEqual(calls, []);
+  for (const [key, ref] of refs) {
+    const element = { nodeName: "SECTION" };
+    assert.equal(ref(element), undefined);
+    assert.equal(ref(null), undefined);
+    assert.deepEqual(calls.splice(0), [[key, element], [key, null]]);
+  }
+  assert.equal(JSON.stringify(sections), original);
+});
+
+test("sectionRef preserves built-in markup and does not run during server rendering", () => {
+  const data = { projects: [{ name: "Example" }], aboutMe: "Bio" };
+  const sections = { projects: { title: "Projects" } };
+  const sectionRef = () => assert.fail("Server rendering must not attach refs");
+  assert.equal(
+    render(data, { sections, sectionRef }),
+    render(data, { sections }),
+  );
+  assert.equal(render(data, { sectionRef }), render(data));
+});
+
+
+test("value width wraps root values and nested object/array values without sections", () => {
+  const data = { description: "Long translated text", nested: { values: ["x".repeat(200), 123, null] } };
+  const theme = { "--content-max-width": "24ch" };
+  for (const props of [{ theme }, { theme, sections: { description: {}, nested: {} } }]) {
+    const html = render(data, props);
+    assert.match(html, /--content-max-width:24ch/);
+    assert.match(html, /max-width:min\(100%, var\(--content-max-width, 100%\)\)/);
+    const markup = withoutStyles(html);
+    for (const value of ["Long translated text", "x".repeat(200), "123", "null"]) {
+      assert.match(markup, new RegExp(`<span class="[^"]+">(?:&quot;)?${value}(?:&quot;)?</span>`));
+    }
+  }
+  assert.match(withoutStyles(render("x".repeat(200), { theme })), /<span class="[^"]+">&quot;x+&quot;<\/span>/);
+});
+
+test("attribute names are quoted and escaped after translation at every depth", () => {
+  const key = 'Name "quoted"\\path\nline';
+  const data = { name: "Jane", nested: { name: 1 }, items: [{ name: true }] };
+  const output = text(render(data, { t: (token) => token === "name" ? key : token }));
+  assert.deepEqual(JSON.parse(output), {
+    [key]: "Jane",
+    nested: { [key]: 1 },
+    items: [{ [key]: true }],
+  });
 });

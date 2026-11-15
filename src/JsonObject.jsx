@@ -50,15 +50,15 @@ export default function JsonObject({
   label = "JSON",
 }) {
   if (isRenderNode(value)) {
-    const render = (data) => (
+    const render = (data, expansion = {}) => (
       <JsonObject
         value={data}
         t={t}
         renderers={renderers}
         collapsible={collapsible}
         initiallyExpanded={initiallyExpanded}
-        expanded={expanded}
-        onExpandedChange={onExpandedChange}
+        expanded={expansion.expanded ?? expanded}
+        onExpandedChange={expansion.onExpandedChange ?? onExpandedChange}
         label={label}
       />
     );
@@ -67,15 +67,30 @@ export default function JsonObject({
     if (!Component) return render(value.value);
     return createElement(
       Component,
-      { ...value.props, value: value.value, t, render },
+      {
+        ...value.props,
+        ...(value.renderer === "section" && {
+          collapsible,
+          initiallyExpanded,
+          expanded,
+          onExpandedChange,
+        }),
+        value: value.value,
+        t,
+        render,
+      },
       value.value === undefined ? undefined : render(value.value),
     );
   }
   if (!isObject(value)) {
-    return typeof value === "string" ? (
-      <TextValue text={t(value)} t={t} renderers={renderers} />
-    ) : (
-      JSON.stringify(value)
+    return (
+      <span css={s.jsonValue}>
+        {typeof value === "string" ? (
+          <TextValue text={t(value)} t={t} renderers={renderers} />
+        ) : (
+          JSON.stringify(value)
+        )}
+      </span>
     );
   }
 
@@ -146,7 +161,7 @@ function JsonContainer({
           >
             {!isArray && (
               <>
-                <span css={s.jsonKey}>{t(key)}</span>
+                <span css={s.jsonKey}>{JSON.stringify(t(key))}</span>
                 {": "}
                 {photo && <br />}
               </>

@@ -17,7 +17,18 @@ export default function CollapseToggle({
       aria-label={`${t(expanded ? "collapse" : "expand")} ${label}`}
       onClick={onToggle}
     >
-      <span aria-hidden="true" css={s.collapseIcon} />
+      <svg
+        css={s.collapseIcon}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path d="M6 12h12" />
+        {!expanded && <path d="M12 6v12" />}
+      </svg>
     </button>
   );
 }

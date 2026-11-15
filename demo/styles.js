@@ -24,9 +24,6 @@ export const styles = {
       "--demo-text": "#f1f4fa", "--demo-muted": "#b0bdd0",
       "--demo-border": "#536176", "--demo-accent": "#8bbdff",
     },
-    "--json-color-text": "var(--demo-text)",
-    "--json-color-background": "var(--demo-surface)",
-    "--json-color-accent": "var(--demo-accent)",
     minHeight: "100vh", background: "var(--demo-background)", color: "var(--demo-text)",
   },
   main: {
@@ -59,4 +56,10 @@ export const styles = {
     h2: { fontSize: 18 },
     pre: { padding: tokens.space.medium, overflowX: "auto", background: "var(--demo-surface)", border: tokens.border, borderRadius: tokens.radius, fontSize: 14 },
   },
+};
+
+export const documentTheme = {
+  "--color-text": "var(--demo-text)",
+  "--color-background": "var(--demo-surface)",
+  "--color-accent": "var(--demo-accent)",
 };

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Global } from "@emotion/react";
 import JsonEye, { createTranslator, Photos } from "../src/index.js";
 import { data, sections, dictionaries } from "./data.js";
-import { globalStyles, styles } from "./styles.js";
+import { globalStyles, styles, documentTheme } from "./styles.js";
 
 export function FramedPhotos(props) {
   return <Photos {...props} css={styles.photo} />;
@@ -48,6 +48,7 @@ export default function Demo() {
           <JsonEye
             key={withSections ? "sections" : "plain"}
             data={data}
+            theme={documentTheme}
             sections={withSections ? sections : undefined}
             expanded={expanded}
             onExpandedChange={(key, nextExpanded) =>

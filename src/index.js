@@ -8,3 +8,4 @@ export { default as Section } from "./renderers/Section.jsx";
 export { default as Icon } from "./renderers/Icon.jsx";
 export { default } from "./JsonEye.jsx";
 export { createTranslator } from "./i18n.js";
+export { defaultTheme } from "./defaultTheme.js";
