@@ -15,6 +15,7 @@ export default function Demo() {
   const [dark, setDark] = useState(false);
   const [withSections, setWithSections] = useState(true);
   const [framed, setFramed] = useState(false);
+  const [expanded, setExpanded] = useState({ details: false });
 
   return (
     <div css={styles.page} data-theme={dark ? "dark" : "light"}>
@@ -39,6 +40,8 @@ export default function Demo() {
           <label><input type="checkbox" checked={withSections} onChange={(event) => setWithSections(event.target.checked)} /> Section headings</label>
           <label><input type="checkbox" checked={framed} onChange={(event) => setFramed(event.target.checked)} /> Custom photo renderer</label>
           <label><input type="checkbox" checked={dark} onChange={(event) => setDark(event.target.checked)} /> Dark theme</label>
+          <button type="button" disabled={!withSections} onClick={() => setExpanded({})}>Expand all sections</button>
+          <button type="button" disabled={!withSections} onClick={() => setExpanded(Object.fromEntries(Object.keys(data).map((key) => [key, false])))}>Collapse all sections</button>
         </fieldset>
 
         <section css={styles.preview} aria-label="Rendered document" lang={language}>
@@ -46,6 +49,10 @@ export default function Demo() {
             key={withSections ? "sections" : "plain"}
             data={data}
             sections={withSections ? sections : undefined}
+            expanded={expanded}
+            onExpandedChange={(key, nextExpanded) =>
+              setExpanded((current) => ({ ...current, [key]: nextExpanded }))
+            }
             t={createTranslator(language, dictionaries)}
             renderers={framed ? framedRenderers : undefined}
           />
@@ -57,6 +64,8 @@ export default function Demo() {
           <pre>{JSON.stringify(data, null, 2)}</pre>
           <h2>sections {withSections ? "(enabled)" : "(disabled)"}</h2>
           <pre>{JSON.stringify(sections, null, 2)}</pre>
+          <h2>expanded</h2>
+          <pre>{JSON.stringify(expanded, null, 2)}</pre>
           <p>Translations and renderer overrides are supplied separately from the data.</p>
         </details>
       </main>

@@ -28,6 +28,8 @@ export default function JsonObject({
   renderers,
   collapsible = true,
   initiallyExpanded = true,
+  expanded,
+  onExpandedChange,
   label = "JSON",
 }) {
   if (isRenderNode(value)) {
@@ -38,6 +40,8 @@ export default function JsonObject({
         renderers={renderers}
         collapsible={collapsible}
         initiallyExpanded={initiallyExpanded}
+        expanded={expanded}
+        onExpandedChange={onExpandedChange}
         label={label}
       />
     );
@@ -65,6 +69,8 @@ export default function JsonObject({
       renderers={renderers}
       collapsible={collapsible}
       initiallyExpanded={initiallyExpanded}
+      expanded={expanded}
+      onExpandedChange={onExpandedChange}
       label={label}
     />
   );
@@ -77,6 +83,8 @@ function JsonContainer({
   collapsible,
   label,
   initiallyExpanded,
+  expanded,
+  onExpandedChange,
 }) {
   const isArray = Array.isArray(value);
   const entries = visibleEntries(value).map(([key, item]) => ({
@@ -97,6 +105,8 @@ function JsonContainer({
       <CollapsibleContent
         collapsible={canCollapse}
         initiallyExpanded={initiallyExpanded}
+        expanded={expanded}
+        onExpandedChange={onExpandedChange}
         label={label}
         t={t}
         opening={<strong>{isArray ? "[" : "{"}</strong>}

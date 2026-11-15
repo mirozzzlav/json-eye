@@ -11,10 +11,13 @@ export default function CollapsibleContent({
   contentStyle,
   collapsible = true,
   initiallyExpanded = false,
+  expanded: controlledExpanded,
+  onExpandedChange,
   label = "JSON",
   t = identity,
 }) {
-  const [expanded, setExpanded] = useState(initiallyExpanded);
+  const [internalExpanded, setExpanded] = useState(initiallyExpanded);
+  const expanded = controlledExpanded ?? internalExpanded;
   const contentId = useId();
   const collapsed = collapsible && !expanded;
 
@@ -24,7 +27,11 @@ export default function CollapsibleContent({
         {collapsible && (
           <CollapseToggle
             expanded={expanded}
-            onToggle={() => setExpanded((value) => !value)}
+            onToggle={() => {
+              const nextExpanded = !expanded;
+              if (controlledExpanded === undefined) setExpanded(nextExpanded);
+              onExpandedChange?.(nextExpanded);
+            }}
             controls={contentId}
             label={label}
             t={t}

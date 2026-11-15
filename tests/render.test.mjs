@@ -922,28 +922,30 @@ test("CSS backgrounds containing image URLs are not wrapped as image paths", () 
   }
 });
 
-test("section metadata controls initial expansion independently for each section", () => {
+test("expanded map controls each section independently of nested containers", () => {
   const data = { closed: { nested: [1] }, open: { nested: [2] }, default: [3] };
   const sections = {
-    closed: { title: "Closed", expanded: false },
-    open: { title: "Open", expanded: true },
+    closed: { title: "Closed" },
+    open: { title: "Open" },
   };
-  const snapshot = JSON.stringify({ data, sections });
-  const html = render(data, { sections });
+  const expanded = { closed: false, open: true };
+  const snapshot = JSON.stringify({ data, sections, expanded });
+  const html = render(data, { sections, expanded });
   const states = [
     ...html.matchAll(/<button\b[^>]*aria-expanded="([^"]+)"/g),
   ].map((match) => match[1]);
   assert.deepEqual(states, ["false", "true", "true", "true", "true"]);
   assert.ok(text(html).includes("Closed{nested: [1]}"));
-  assert.equal(JSON.stringify({ data, sections }), snapshot);
+  assert.equal(JSON.stringify({ data, sections, expanded }), snapshot);
   const defaults = render(
     { missing: [1], invalid: [2], empty: {} },
     {
       sections: {
         missing: null,
-        invalid: { expanded: "false" },
-        empty: { expanded: false },
+        invalid: {},
+        empty: {},
       },
+      expanded: { invalid: "false", empty: false },
     },
   );
   assert.deepEqual(
@@ -952,6 +954,22 @@ test("section metadata controls initial expansion independently for each section
     ),
     ["true", "true"],
   );
+});
+
+test("section expansion ignores legacy metadata and inherited map properties", () => {
+  const data = { details: [1], other: [2] };
+  const sections = { details: { expanded: false } };
+  for (const expanded of [undefined, null, {}, Object.create({ details: false })]) {
+    const html = render(data, { sections, expanded });
+    assert.deepEqual(
+      [...html.matchAll(/<button\b[^>]*aria-expanded="([^"]+)"/g)].map(
+        (match) => match[1],
+      ),
+      ["true", "true"],
+    );
+  }
+  const plain = render(data, { expanded: { details: false, other: false } });
+  assert.doesNotMatch(plain, /aria-expanded="false"/);
 });
 
 test("unterminated photo placeholders do not interpret embedded placeholders", () => {

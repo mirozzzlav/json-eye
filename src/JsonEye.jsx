@@ -9,6 +9,8 @@ export default function JsonEye({
   t = identity,
   renderers,
   sections,
+  expanded,
+  onExpandedChange,
   className,
 }) {
   const hasSections =
@@ -26,10 +28,17 @@ export default function JsonEye({
               value={{ renderer: "section", props: metadata, value }}
               t={t}
               renderers={renderers}
-              initiallyExpanded={
-                typeof metadata?.expanded === "boolean"
-                  ? metadata.expanded
-                  : true
+              expanded={
+                isRecord(expanded)
+                  ? Object.hasOwn(expanded, key) && typeof expanded[key] === "boolean"
+                    ? expanded[key]
+                    : true
+                  : undefined
+              }
+              onExpandedChange={
+                onExpandedChange
+                  ? (nextExpanded) => onExpandedChange(key, nextExpanded)
+                  : undefined
               }
               label={t(key)}
             />

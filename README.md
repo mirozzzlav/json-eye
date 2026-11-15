@@ -26,14 +26,14 @@ const sections = {
     icon: "/icons/profile.svg",
     background: "#f4f7fb",
   },
-  skills: { title: "Skills", icon: "/icons/skills.svg", expanded: false },
+  skills: { title: "Skills", icon: "/icons/skills.svg" },
 };
 
 <JsonEye data={data} sections={sections} className="my-document" />;
 ```
 
-Only `data` is required. `sections`, `t`, `renderers` and
-`className` are optional. Pass parsed data, not JSON source text.
+Only `data` is required. `sections`, `expanded`, `onExpandedChange`, `t`,
+`renderers` and `className` are optional. Pass parsed data, not JSON source text.
 
 ## Installation
 
@@ -66,6 +66,8 @@ For section headings and icons, pass the separate metadata shown above. Supply
 | --- | --- | --- |
 | `data` | Required | Parsed JSON value to display. |
 | `sections` | Omitted | Metadata keyed by root data properties; see below. |
+| `expanded` | Omitted | Controlled expansion map keyed by root sections; missing keys default to `true`. |
+| `onExpandedChange` | Omitted | Called with `(key, expanded)` when a section toggle is clicked. |
 | `t` | Identity function | Translates keys, string values and renderer labels. |
 | `renderers` | Built-in renderers | Instance-local component overrides or registrations. |
 | `className` | Omitted | CSS class for the outer document element. |
@@ -82,11 +84,35 @@ An undefined data entry is omitted. A data key without metadata still gets a
 section, with the default title `"Section"` and no icon. An empty `sections`
 object uses those defaults for every data key. Empty root data produces no sections.
 
-Set `expanded: false` in a section's metadata to start its JSON content collapsed.
-`expanded: true` is the default. This setting affects only the section's outer
-container. Nested objects and arrays start expanded; toggles work independently
-and all content stays visible in print.
-Changing `expanded` after mounting does not reset the user's toggle state.
+Section metadata contains presentation only; `sections[key].expanded` is not used.
+To control expansion, keep an `expanded` map in the parent and update it through
+`onExpandedChange(key, expanded)`:
+
+```jsx
+const [expanded, setExpanded] = useState({ aboutMe: true, skills: false });
+
+<JsonEye
+  data={data}
+  sections={sections}
+  expanded={expanded}
+  onExpandedChange={(key, nextExpanded) =>
+    setExpanded((current) => ({ ...current, [key]: nextExpanded }))
+  }
+/>;
+```
+
+Import `useState` from React. Updating the map changes expansion immediately,
+including after mounting. Missing keys default to expanded; `setExpanded({})`
+expands all sections. With an `expanded` map supplied, toggles request changes
+through the callback; the parent must update the map. Without a callback,
+controlled sections only change when the parent changes `expanded`.
+
+Omit `expanded` (or pass `null`) for internal toggle state, initially expanded.
+The callback, if supplied, also reports section toggles in this mode.
+Expansion props apply only when using a `sections` map and affect each section's
+outer JSON container. Empty containers and primitive values have no toggle.
+Nested objects and arrays start expanded and toggle independently; their toggles
+do not trigger the section callback. All content stays visible in print.
 
 Optional `background` styles the whole section, including its heading. Use a CSS
 color such as `"#f4f7fb"`, a CSS background such as `"linear-gradient(...)"`, or an
@@ -276,7 +302,10 @@ Page dimensions, global styles, custom photo sizes and decorations are controlle
 by the consuming application.
 
 Standalone `JsonObject` supports `value`, `renderers`, `t`,
-`collapsible`, `initiallyExpanded` and `label`. `collapsible={false}` disables
+`collapsible`, `initiallyExpanded`, `expanded`, `onExpandedChange` and `label`.
+Its optional boolean `expanded` controls the outer container;
+`onExpandedChange(expanded)` reports requested changes. Omit `expanded` to use
+internal state initialized by `initiallyExpanded`. `collapsible={false}` disables
 all subtree toggles, including custom renderer children and explicit render calls.
 
 ## Translation helper

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added controlled section expansion through `JsonEye` props `expanded` and `onExpandedChange(key, expanded)`.
+- Removed `expanded` from section metadata; use the top-level expansion map instead.
+
 ## 1.1.0
 
 - Photos now use square cropping by default; set `square: false` per image to preserve its native aspect ratio.

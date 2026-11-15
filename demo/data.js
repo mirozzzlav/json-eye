@@ -42,7 +42,7 @@ export const sections = {
   profile: { title: "Profile", icon: asset("profile.svg") },
   skills: { title: "Skills", icon: asset("code.svg") },
   gallery: { title: "Gallery", icon: asset("image.svg") },
-  details: { title: "Details", expanded: false },
+  details: { title: "Details" },
 };
 
 export const dictionaries = {
