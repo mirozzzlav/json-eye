@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.0.0
 
 - Breaking: removed section `background` support and its `--mobile-breakpoint` and `--tablet-breakpoint` theme tokens; apply backgrounds in application styles.
 
@@ -8,10 +8,13 @@
 
 - Added photo border width, style, color and radius theme tokens; borders are disabled by default.
 
+- Added accessible section heading buttons that toggle the root JSON container.
 - Added `sectionRef(key, element)` for accessing root section DOM elements without internal IDs or routing dependencies.
 
-- Added an instance-local `theme` prop with flat CSS custom-property tokens for all built-in renderers, print styles.
+- Added an instance-local `theme` prop with flat CSS custom-property tokens for all built-in renderers and print styles.
 - Exported a token-only `defaultTheme` and migrated the demo to the flat theme API.
+- Fixed section refs forwarding callback return values to React.
+- Removed the redundant style context and factory; built-in styles share static definitions.
 - Fixed the document font being overridden by an internal `font-family: inherit` rule.
 - Breaking: removed the `--json-*` CSS variable API; supply appearance overrides through `theme`.
 
