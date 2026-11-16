@@ -1,11 +1,8 @@
 # Changelog
 
-## Unreleased
-
-- Added a built-in `bold` renderer and `%bold;Important%` inline placeholder, with translations, local overrides and theme font weight support.
-
 ## 3.0.1
 
+- Added a built-in `bold` renderer and `%bold;Important%` inline placeholder, with translations, local overrides and theme font weight support.
 - Fixed trailing commas staying with primitive JSON values when long content wraps.
 - Expanded the demo biography in English and Slovak to demonstrate long-text wrapping with inline links.
 

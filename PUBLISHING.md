@@ -32,7 +32,7 @@ In a separate React application, install the exact archive and check its UI:
 npm install /absolute/path/to/react-json-eye-3.0.1.tgz @emotion/react
 ```
 
-Check JSON rendering, section headings and icons, photo/link placeholders,
+Check JSON rendering, section headings and icons, photo/link/bold placeholders,
 collapse controls and print output. The automated checks use React 18; test a
 React 19 consumer separately when validating that peer version. React and Emotion
 must be provided by the consumer. No source JSX transformation or CSS import
