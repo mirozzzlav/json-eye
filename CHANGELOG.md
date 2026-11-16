@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.1
+
+- Fixed trailing commas staying with primitive JSON values when long content wraps.
+- Expanded the demo biography in English and Slovak to demonstrate long-text wrapping with inline links.
+
 ## 3.0.0
 
 - Breaking: removed section `background` support and its `--mobile-breakpoint` and `--tablet-breakpoint` theme tokens; apply backgrounds in application styles.

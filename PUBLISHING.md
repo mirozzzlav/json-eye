@@ -14,11 +14,11 @@ smoke test that imports the public exports and renders the compiled components
 without Vite. A failing check stops packing. Do not disable lifecycle scripts
 when preparing a release.
 
-For version 3.0.0 the result is `react-json-eye-3.0.0.tgz`. Check its contents:
+For version 3.0.1 the result is `react-json-eye-3.0.1.tgz`. Check its contents:
 
 ```sh
-tar -tzf react-json-eye-3.0.0.tgz
-npm publish ./react-json-eye-3.0.0.tgz --dry-run --registry=https://registry.npmjs.org/
+tar -tzf react-json-eye-3.0.1.tgz
+npm publish ./react-json-eye-3.0.1.tgz --dry-run --registry=https://registry.npmjs.org/
 ```
 
 The archive should contain only `package.json`, `README.md`, `LICENSE`,
@@ -29,7 +29,7 @@ controls the archive; npm also includes package metadata, README and LICENSE.
 In a separate React application, install the exact archive and check its UI:
 
 ```sh
-npm install /absolute/path/to/react-json-eye-3.0.0.tgz @emotion/react
+npm install /absolute/path/to/react-json-eye-3.0.1.tgz @emotion/react
 ```
 
 Check JSON rendering, section headings and icons, photo/link placeholders,
@@ -56,8 +56,8 @@ are checked against the registry at release time, not by the local build.
 When ready to publish publicly, run:
 
 ```sh
-npm publish ./react-json-eye-3.0.0.tgz --access public --registry=https://registry.npmjs.org/
-npm view react-json-eye@3.0.0 version dist.integrity --registry=https://registry.npmjs.org/
+npm publish ./react-json-eye-3.0.1.tgz --access public --registry=https://registry.npmjs.org/
+npm view react-json-eye@3.0.1 version dist.integrity --registry=https://registry.npmjs.org/
 ```
 
 Complete npm's authentication/2FA prompts as required. Publish the verified archive

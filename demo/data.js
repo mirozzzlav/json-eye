@@ -47,12 +47,12 @@ export const sections = {
 
 export const dictionaries = {
   en: {
-    intro: "I build interfaces with React. Find the renderer at %link;url=github.com/mirozzzlav/json-eye;text=GitHub%.",
+    intro: "I build interfaces with React, focusing on clear layouts, accessible interactions and reusable components that work well on phones, tablets and larger screens. My projects often bring together structured data, translated content and rich elements such as links and photos in a single document. I enjoy turning complex requirements into interfaces that are easy to read and comfortable to use, even when a description grows beyond a few short sentences. This longer biography shows how text wraps within the available space and how an inline link fits naturally into a paragraph. Find the renderer at %link;url=github.com/mirozzzlav/json-eye;text=GitHub%.",
     galleryDescription: "Local illustrations rendered from an inline photos placeholder.",
     detailsNote: "This section starts collapsed. Open it with the + button; nested objects collapse independently.",
   },
   sk: {
-    intro: "Tvorím rozhrania v Reacte. Renderer nájdeš na %link;url=github.com/mirozzzlav/json-eye;text=GitHube%.",
+    intro: "Tvorím rozhrania v Reacte so zameraním na prehľadné rozloženie, prístupné ovládanie a opakovane použiteľné komponenty, ktoré fungujú na telefónoch, tabletoch aj väčších obrazovkách. V mojich projektoch sa často spájajú štruktúrované dáta, preložený obsah a prvky ako odkazy či fotografie v jednom dokumente. Baví ma premieňať zložité požiadavky na rozhrania, ktoré sa dobre čítajú a pohodlne používajú, aj keď popis presiahne niekoľko krátkych viet. Tento dlhší životopis ukazuje zalamovanie textu podľa dostupného priestoru aj prirodzené začlenenie odkazu do odseku. Renderer nájdeš na %link;url=github.com/mirozzzlav/json-eye;text=GitHube%.",
     galleryDescription: "Lokálne ilustrácie zobrazené pomocou inline zástupného zápisu photos.",
     detailsNote: "Táto sekcia začína zbalená. Otvor ju tlačidlom +; vnorené objekty sa zbalia samostatne.",
     Profile: "Profil", Skills: "Zručnosti", Gallery: "Galéria", Details: "Podrobnosti",

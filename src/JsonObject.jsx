@@ -48,9 +48,10 @@ export default function JsonObject({
   expanded,
   onExpandedChange,
   label = "JSON",
+  trailingComma = "",
 }) {
   if (isRenderNode(value)) {
-    const render = (data, expansion = {}) => (
+    const render = (data, expansion = {}, comma = "") => (
       <JsonObject
         value={data}
         t={t}
@@ -60,12 +61,13 @@ export default function JsonObject({
         expanded={expansion.expanded ?? expanded}
         onExpandedChange={expansion.onExpandedChange ?? onExpandedChange}
         label={label}
+        trailingComma={comma}
       />
     );
     const Component = resolveRenderer(value.renderer, renderers);
     // Unknown renderer names fall back to their content; metadata stays out of the output.
-    if (!Component) return render(value.value);
-    return createElement(
+    if (!Component) return render(value.value, {}, trailingComma);
+    const rendered = createElement(
       Component,
       {
         ...value.props,
@@ -81,6 +83,12 @@ export default function JsonObject({
       },
       value.value === undefined ? undefined : render(value.value),
     );
+    return (
+      <>
+        {rendered}
+        {trailingComma}
+      </>
+    );
   }
   if (!isObject(value)) {
     return (
@@ -90,21 +98,25 @@ export default function JsonObject({
         ) : (
           JSON.stringify(value)
         )}
+        {trailingComma}
       </span>
     );
   }
 
   return (
-    <JsonContainer
-      value={value}
-      t={t}
-      renderers={renderers}
-      collapsible={collapsible}
-      initiallyExpanded={initiallyExpanded}
-      expanded={expanded}
-      onExpandedChange={onExpandedChange}
-      label={label}
-    />
+    <>
+      <JsonContainer
+        value={value}
+        t={t}
+        renderers={renderers}
+        collapsible={collapsible}
+        initiallyExpanded={initiallyExpanded}
+        expanded={expanded}
+        onExpandedChange={onExpandedChange}
+        label={label}
+      />
+      {trailingComma}
+    </>
   );
 }
 
@@ -172,10 +184,14 @@ function JsonContainer({
               renderers={renderers}
               collapsible={collapsible}
               label={isArray ? `${label} ${Number(key) + 1}` : t(key)}
+              trailingComma={
+                index < entries.length - 1 && !photo
+                  ? inlineArray
+                    ? ", "
+                    : ","
+                  : ""
+              }
             />
-            {index < entries.length - 1 && !photo
-              ? (inlineArray ? ", " : ",")
-              : ""}
           </span>
         ))}
       </CollapsibleContent>

@@ -1,6 +1,6 @@
 {
   "name": "react-json-eye",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "module",
   "description": "React JSON document renderer with sections, inline renderers and translations.",
   "main": "./dist/json-eye.js",

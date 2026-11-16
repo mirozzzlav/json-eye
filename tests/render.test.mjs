@@ -1232,8 +1232,10 @@ test("value width wraps root values and nested object/array values without secti
     assert.match(html, /max-width:min\(100%, var\(--content-max-width, 100%\)\)/);
     const markup = withoutStyles(html);
     for (const value of ["Long translated text", "x".repeat(200), "123", "null"]) {
-      assert.match(markup, new RegExp(`<span class="[^"]+">(?:&quot;)?${value}(?:&quot;)?</span>`));
+      assert.match(markup, new RegExp(`<span class="[^"]+">(?:&quot;)?${value}(?:&quot;)?(?:, ?)?</span>`));
     }
+    assert.match(markup, /&quot;x+&quot;, <\/span>/);
+    assert.equal(text(html).includes('"' + "x".repeat(200) + '", 123, null'), true);
   }
   assert.match(withoutStyles(render("x".repeat(200), { theme })), /<span class="[^"]+">&quot;x+&quot;<\/span>/);
 });
