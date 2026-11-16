@@ -34,15 +34,13 @@ export function resolveInlineParts(text, t = identity, renderers) {
     const Component = node && resolveRenderer(node.name, renderers);
     if (!Component) return part;
     const children =
-      node.name === "link" && node.props.text !== undefined
-        ? t(node.props.text)
-        : undefined;
+      node.props.text !== undefined ? t(node.props.text) : undefined;
     return {
       name: node.name,
       Component,
       props: node.props,
       children,
-      text: node.name === "link" ? (children ?? node.props.url.trim()) : "",
+      text: children ?? (node.name === "link" ? node.props.url.trim() : ""),
     };
   });
 }
@@ -76,6 +74,11 @@ export function parseInlineNode(token) {
   }
   parts.push(part);
   const name = parts.shift().trim();
+  if (name === "bold") {
+    return parts.length === 1
+      ? { name, props: { text: parts[0].replace(/\\([\\;%])/g, "$1") } }
+      : null;
+  }
   if (!Object.hasOwn(parameters, name)) return null;
   const props = Object.create(null);
   for (const entry of parts) {
@@ -86,6 +89,6 @@ export function parseInlineNode(token) {
       return null;
     props[key] = entry.slice(equals + 1).replace(/\\([\\;%])/g, "$1");
   }
-  if (!props.url?.trim()) return null;
+  if (name === "link" && !props.url?.trim()) return null;
   return { name, props };
 }

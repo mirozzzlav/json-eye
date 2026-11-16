@@ -7,7 +7,7 @@ import JsonEye, * as api from "react-json-eye";
 test("built package exposes the documented public API without a JSX loader", () => {
   assert.deepEqual(Object.keys(api).sort(), [
     "CollapsibleContent", "DocumentSection", "Icon", "JsonEye", "JsonObject",
-    "Link", "Photos", "Section", "createTranslator", "default", "defaultTheme",
+    "Bold", "Link", "Photos", "Section", "createTranslator", "default", "defaultTheme",
   ].sort());
   assert.equal(JsonEye, api.JsonEye);
   for (const [key, value] of Object.entries(api)) {

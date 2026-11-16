@@ -1,10 +1,12 @@
 import Photos from "./renderers/Photos.jsx";
 import Link from "./renderers/Link.jsx";
+import Bold from "./renderers/Bold.jsx";
 import Section from "./renderers/Section.jsx";
 
 const builtinRenderers = {
   photos: Photos,
   link: Link,
+  bold: Bold,
   section: Section,
 };
 

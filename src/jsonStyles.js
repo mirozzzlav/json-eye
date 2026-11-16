@@ -13,6 +13,9 @@ const tokens = Object.fromEntries(
 );
 
 export const style = {
+  bold: {
+    fontWeight: tokens["--font-weight-bold"],
+  },
   link: {
     display: "inline-block",
     maxWidth: `min(100%, ${tokens["--content-max-width"]})`,

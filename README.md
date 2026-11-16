@@ -182,6 +182,7 @@ with all parameters supplied directly in the text:
 {
   "photos": "%photos[{src:/portrait.jpg,alt:Portrait},{src:/other.jpg,alt:Other portrait}]%",
   "web": "%link;url=example.com;text=My website%",
+  "notice": "This is %bold;important%.",
   "message": "Email me at %link;url=hello@example.com%."
 }
 ```
@@ -195,8 +196,10 @@ with all parameters supplied directly in the text:
   Use the plural `photos` name, including for a single image.
 - `link`: required `url`; optional `text`. Omitted `text` displays
   the URL. Supplied `text` is translated through `t`.
+- `bold`: text directly after the semicolon, translated through `t` and rendered as `<strong>` using
+  the theme’s `--font-weight-bold` token. Example: `%bold;Important%`.
 
-Names are case-sensitive. The internal `Photos` and `Link` components render these
+Names are case-sensitive. The internal `Photos`, `Link` and `Bold` components render these
 placeholders automatically, without a dictionary, JSX values or registrations.
 The optional `renderers` map can override inline placeholders for an instance. A string containing
 only one valid placeholder renders the component without surrounding quotes;
@@ -219,7 +222,7 @@ renderer, not placeholder data. Photo lists
 are parsed as data, never executed as JavaScript. An invalid item leaves the
 whole placeholder literal, rather than rendering a partial collection.
 
-Link parameter values can contain spaces and equals signs. Escape their delimiter
+Link parameter values and bold text can contain spaces and equals signs. Escape their delimiter
 characters with a backslash: `\;`, `\%` and `\\`. In JSON source that backslash is
 doubled. For example, `"%link;url=example.com;text=Hello\\; world%"` displays
 `Hello; world`.
@@ -238,7 +241,7 @@ function can insert a computed number into `%years%` before returning the text. 
 
 ## Rendering components
 
-`section`, `photos` and `link` are built in. The data/sections interface and
+`section`, `photos`, `link` and `bold` are built in. The data/sections interface and
 inline placeholders require no renderer nodes in data or custom registrations.
 There is no separate template renderer.
 Advanced use can still embed explicit nodes:
@@ -279,6 +282,8 @@ Built-in renderers:
   preserved. Other addresses without HTTP(S) get `https://`.
   Web links use a new tab and `rel="noopener noreferrer"`. A missing URL renders
   only children.
+- `bold`: rendered children wrapped in `<strong>`, using `--font-weight-bold`.
+  Explicit nodes use `{ renderer: "bold", value: "Important" }`.
 
 ### External styling renderers
 
@@ -295,8 +300,8 @@ function MyPhotos(props) {
 ```
 
 The data stays `%photos[{src:/portrait.jpg,alt:Portrait}]%`. `className` is not a
-placeholder parameter for photos or links. Overrides receive the parsed props and
-`t`; link renderers also receive the translated label as `children` when supplied.
+placeholder parameter for photos, links or bold text. Overrides receive the parsed props and
+`t`; link and bold renderers also receive the translated label as `children` when supplied.
 Only own registrations are used. Without an override, built-ins render normally.
 A `null` override leaves an inline placeholder literal.
 
@@ -382,7 +387,7 @@ both `"--item-gap"` and `"--print-item-gap"` for `--json-item-gap` if it should
 affect screen and print.
 
 `className` and Emotion's `css` prop remain available for application layout and
-custom renderer styling. Section, link and photos components also forward a
+custom renderer styling. Section, link, bold and photos components also forward a
 renderer-level `className`. Section backgrounds belong in application styles.
 React and Emotion are required.
 
@@ -443,7 +448,7 @@ npm run dev
 
 Open the local URL printed by Vite. The demo imports the library directly from
 `src/` and uses local SVG assets. Try English/Slovak content, section headings,
-collapsible nested JSON, inline links and photos, a custom photo renderer, and
+collapsible nested JSON, inline links, bold text and photos, a custom photo renderer, and
 light/dark themes. Expand the input panel to inspect the data and section metadata.
 
 ```sh
@@ -482,7 +487,7 @@ verification and publishing commands, and [CHANGELOG.md](./CHANGELOG.md) for cha
 
 The ESM build is exported from `dist/json-eye.js`. React, React DOM and Emotion
 remain external peer dependencies. Named exports are `JsonEye`, `JsonObject`,
-`DocumentSection`, `CollapsibleContent`, `Photos`, `Link`, `Section`, `Icon`,
+`DocumentSection`, `CollapsibleContent`, `Photos`, `Link`, `Bold`, `Section`, `Icon`,
 `createTranslator` and `defaultTheme`; the default export is `JsonEye`.
 
 ## License

@@ -112,6 +112,45 @@ test("inline placeholders render internal photos and links after translation at 
   );
 });
 
+test("bold placeholders translate labels, mix with text and links, and use theme weight", () => {
+  const token = "%bold;important%";
+  const t = (value) => ({ important: "Dôležité", message: `Read ${token} %link;url=example.com%` })[value] ?? value;
+  const html = render({ nested: ["message", token] }, { t, theme: { "--font-weight-bold": 800 } });
+  assert.match(html, /<strong[^>]*>Dôležité<\/strong>/);
+  assert.match(html, /font-weight:var\(--font-weight-bold, 700\)/);
+  assert.match(html, /--font-weight-bold:800/);
+  assert.ok(text(html).includes('"Read Dôležité example.com"'));
+  assert.equal(text(render(token, { t })), "Dôležité");
+  assert.equal(text(render("%bold;%")), "");
+  assert.doesNotMatch(render(["%bold;Short%"]), /<br\b/);
+  assert.match(render([`%bold;${"a".repeat(31)}%`]), /<br\b/);
+});
+
+test("bold supports explicit nodes, standalone exports and local overrides", async () => {
+  const { Bold } = await server.ssrLoadModule("/src/index.js");
+  assert.match(renderToStaticMarkup(createElement(Bold, { className: "emphasis" }, "Label")), /<strong[^>]*class="emphasis[^\"]*">Label<\/strong>/);
+  assert.equal(text(render({ renderer: "bold", value: "Label" })), '"Label"');
+  const token = "%bold;Label%";
+  const renderers = { bold: ({ children }) => createElement("b", null, children) };
+  assert.match(render(token, { renderers }), /<b>Label<\/b>/);
+  assert.match(render(token, { renderers: Object.create(renderers) }), /<strong\b/);
+  assert.equal(text(render(token, { renderers: { bold: null } })), JSON.stringify(token));
+  assert.match(render(token), /<strong\b/);
+});
+
+test("bold escapes delimiters and HTML and preserves invalid placeholders", () => {
+  assert.equal(text(render("%bold;Hello\\; 100\\% \\\\ done=ok%")), "Hello; 100% \\ done=ok");
+  assert.equal(text(render("%bold;value=ok%")), "value=ok");
+  assert.equal(text(render("%bold; two words %")), " two words ");
+  const html = render("%bold;<script>alert(1)</script>%");
+  assert.doesNotMatch(html, /<script>/);
+  assert.match(html, /&lt;script&gt;/);
+  for (const token of ["%bold%", "%bold;x;y%", "%bold;x;className=y%", "%bold;x", "%Bold;text=x%"]) {
+    assert.equal(text(render(token)), JSON.stringify(token));
+  }
+  assert.doesNotMatch(render("%bold;label%", { t: (value) => value === "label" ? "%link;url=example.com%" : value }), /<a\b/);
+});
+
 test("inline placeholders propagate into render calls without changing keys or props", () => {
   function Panel({ render, details, title }) {
     return createElement("aside", { title }, render(details));

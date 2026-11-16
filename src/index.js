@@ -4,6 +4,7 @@ export { default as CollapsibleContent } from "./CollapsibleContent.jsx";
 export { default as DocumentSection } from "./DocumentSection.jsx";
 export { default as Photos } from "./renderers/Photos.jsx";
 export { default as Link } from "./renderers/Link.jsx";
+export { default as Bold } from "./renderers/Bold.jsx";
 export { default as Section } from "./renderers/Section.jsx";
 export { default as Icon } from "./renderers/Icon.jsx";
 export { default } from "./JsonEye.jsx";

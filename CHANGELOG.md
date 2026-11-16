@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added a built-in `bold` renderer and `%bold;Important%` inline placeholder, with translations, local overrides and theme font weight support.
+
 ## 3.0.1
 
 - Fixed trailing commas staying with primitive JSON values when long content wraps.
